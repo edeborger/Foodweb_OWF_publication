@@ -1,0 +1,1625 @@
+Title  : Coarse sediment foodweb
+Version: MARCH 2023
+Author : Emil De Borger
+
+###############################################################################
+
+#### PARAMETERS								   
+
+!!!!!!!!!!!!!!!!!!!!!
+!---	DATA	 ---!
+!!!!!!!!!!!!!!!!!!!!!
+
+	!- STOCK DATA
+	!-- (in mmol C m-2)
+	!-- Biomass retrieved from either core incubations or Van Veen samples and con-
+	!-- verted using factors of Brey et al. 
+
+	Callionymiformes = 0.5667
+	Carangiformes = 0.0586
+	Gadiformes = 0.2192
+	Gobiiformes = 0.143
+	Mulliformes = 0.0437
+	Cottoidei = 0.0115
+	Percoidei = 0.0120
+	Scorpaenidei = 0.0845
+	Ammodytidae = 0.0657
+	Pleuronectiformes = 3.0983
+	Jellyfish = 106.32
+	Cumacea = 0.272
+	Callianassidae = 0.025
+	Isopods = 0.291
+	DetritivoreAmphipods = 1.937
+	DetritivoreplanktivoreAmphipods = 0.404
+	DetritivoreShrimp = 3.453
+	SmallSuspensiondepositfeedingCrabs = 92.938
+	Pagurids = 4.221
+	CarnivorousCrabs = 8.052
+	AsteriasRubens = 276.7
+	Ophiurids = 0.494
+	EchinocardiumCordatum = 1453.145
+	DetritivorePolychates = 18.643
+	Nephtyds = 21.408
+	CarnivorousPolychaetesP = 0.051
+	CarnivorousPolychaetesC = 0.019
+	CarnivorousPolychaetePC = 2.1
+	SuspensionfeedingWorms = 2.81
+	SuspensionFeederBivalve = 0.097
+	HerbivorousSuspensiondepositfeederBivalve = 2.567
+	SuspensiondepositfeederBivalve = 45.591
+	BrowsingGastropods = 0.277
+	SuspensionfeederGastropod = 0.019
+	SepiolaAtlantica = 1.093
+	!Zooplankton = 89.1975
+	!Phytoplankton = 118.93
+	SedOM = 7556
+	SuspPOM = 1057.347
+	SedBact = 395.25 ! Bacteria sediment
+	WatBact = 25	 ! Bacteria water column
+
+	!- STABLE ISOTOPE DATA
+	!-- Fractionation
+	FracCALLIO = 3.66
+	FracCARANG = 3.4
+	FracGADIFO = 3.4
+	FracGOBIFO = 3.4
+	FracMULLIF = 3.4
+	FracCOTTOI = 3.4
+	FracPERCOI = 3.4
+	FracSCORPA = 3.4
+	FracAMMODY = 3.4
+	FracPLEURO = 3.4
+	FracJELLY = 3.4
+	FracCUMACE = 3.4
+	FracCALLIA = 3.4
+	FracISOPOD = 3.4
+	FracDETAMP = 3.4
+	FracDPAMP = 3.4
+	FracDETSHR = 3.4
+	FracSUDECR = 3.4
+	FracPAGURI = 3.4
+	FracCARNCR = 3.4
+	FracASTRUB = 3.4
+	FracOPHIUR = 3.4
+	FracECHCOR = 3.4
+	FracDETPOL = 3.4
+	FracNEPHTY = 3.4
+	FracCARPOLP = 3.4
+	FracCARPOLC = 3.4
+	FracCARPOLPC = 3.4
+	FracSUSWOR = 3.4
+	FracSUSBIV = 3.4
+	FracHSUDEBI = 3.4
+	FracSUDEBI = 3.4
+	FracBROGAS = 3.4
+	FracSUSGAS = 3.4
+	FracSEPATL = 3.4
+
+	!-- 15 N values
+	IsoCALLIO = 15.63
+	IsoCARANG = 16.46
+	IsoGADIFO = 19.08
+	IsoGOBIFO = 16.58
+	IsoMULLIF = 16.30
+	IsoCOTTOI = 16.98
+	IsoPERCOI = 16.84
+	IsoSCORPA = 18.00
+	IsoAMMODY = 15.28
+	IsoPLEURO = 15.96
+	IsoJELLY = 14.47
+	IsoCUMACE = 10.17
+	IsoCALLIA = 11.15
+	IsoISOPOD = 8.6
+	IsoDETAMP = 10.81
+	IsoDPAMP = 10.98
+	IsoDETSHR = 12.72
+	IsoSUDECR = 11.06
+	IsoPAGURI = 13.94
+	IsoCARNCR = 14.97
+	IsoASTRUB = 14.12
+	IsoOPHIUR = 13.96
+	IsoECHCOR = 11.08
+	IsoDETPOL = 15.11
+	IsoNEPHTY = 14.85
+	IsoCARPOLP = 15.00
+	IsoCARPOLC = 15.29
+	IsoCARPOLPC = 14.01
+	IsoSUSWOR = 11.5
+	IsoSUSBIV = 12.02
+	IsoHSUDEBI = 10.5
+	IsoSUDEBI = 10.62
+	IsoBROGAS = 10.5
+	IsoSUSGAS = 12.29
+	IsoSEPATL = 16.37
+	IsoZOOPLANKT = 11.55 !(11.2 - 11.9)
+	IsoPHYTOPLANKT = 6.5
+	IsoSOM  = 7.4
+	IsoSPOM = 10.35
+	IsoSEDBAC = 9.4
+	IsoWATBAC = 9.4
+
+	!- RESPIRATION DATA
+	!-- Respiration coefficients were calculated using allometric shallow water scaling formula for individual species (Mahaut et al., 1995).
+	!-- Rates in (mmol C m-2 d-1)
+	respirationCALLIO = 0.0057
+	respirationCARANG = 0.0006
+	respirationGADIFO = 0.0022
+	respirationGOBIFO = 0.0014
+	respirationMULLIF = 0.0004
+	respirationCOTTOI = 0.0001
+	respirationPERCOI = 0.0001
+	respirationSCORPA = 0.0008
+	respirationAMMODY = 0.0007
+	respirationPLEURO = 0.0310
+	respirationJELLY = 1.0632
+	respirationCUMACE = 0.0055
+	respirationCALLIA = 0.0007
+	respirationISOPOD = 0.0058
+	respirationDETAMP = 0.0522
+	respirationDPAMP = 0.011
+	respirationDETSHR = 0.0638
+	respirationSUDECR = 0.7645
+	respirationPAGURI = 0.0734
+	respirationCARNCR = 0.117
+	respirationASTRUB = 1.8202
+	respirationOPHIUR = 0.0108
+	respirationECHCOR = 7.7105
+	respirationDETPOL = 0.2503
+	respirationNEPHTY = 0.2979
+	respirationCARPOLP = 0.0013
+	respirationCARPOLC = 0.0006
+	respirationCARPOLPC = 0.0177
+	respirationSUSWOR = 0.05
+	respirationSUSBIV = 0.0028
+	respirationHSUDEBI = 0.0372
+	respirationSUDEBI = 0.4301
+	respirationBROGAS = 0.0059
+	respirationSUSGAS = 0.0006
+	respirationSEPATL = 0.0081
+	
+	!--- Plankton
+	!respirationZOOPLANKT   = 0.15 * Zooplankton
+	!respirationPHYTOPLANKT = 0.1  * Phytoplankton
+
+	!--- Bacteria
+	!respirationSEDBAC = 
+	!respirationWATBAC = 
+
+	!- CARBON BURIAL
+	!-- {mmol C m-2 d-1}
+	!-- Get this from mass budget modelling done for FaCE-It.
+		SOMburial = 0.01
+
+	!!!!!!!!!!!!!!!!!!!!!
+	!--- CONSTRAINTS ---!
+	!!!!!!!!!!!!!!!!!!!!!
+
+	!-- General - used for compartments that have respiration data
+	!--- Assimilation efficiency
+	minAE = 0.40
+	maxAE = 0.80
+
+	!--- Production efficiency
+	minPE = 0.20
+	maxPE = 0.70
+
+	!-- Bacterial growth efficiency
+	minBGE = 0.05
+	maxBGE = 0.45
+
+	!-- Phytoplankton growth efficiency
+	!minPGE = 0.5
+	!maxPGE = 0.8
+
+	!-- Organism respiration limits
+	minRespLim = 0.75
+	maxRespLim = 1.25
+
+	!-- Sedresp
+	avgSedResp = 15.88 ! +- 2.71 ! Core measurements FaCE-It.
+	minSedResp = 13.17
+	maxSedResp = 18.59
+
+#### END PARAMETERS
+
+
+
+#### STOCK
+
+	CALLIO = Callionymiformes
+	CARANG = Carangiformes
+	GADIFO = Gadiformes
+	GOBIFO = Gobiiformes
+	MULLIF = Mulliformes
+	COTTOI = Cottoidei
+	PERCOI = Percoidei
+	SCORPA = Scorpaenidei
+	AMMODY = Ammodytidae
+	PLEURO = Pleuronectiformes
+	JELLY = Jellyfish
+	CUMACE = Cumacea
+	CALLIA = Callianassidae
+	ISOPOD = Isopods
+	DETAMP = DetritivoreAmphipods
+	DPAMP = DetritivoreplanktivoreAmphipods
+	DETSHR = DetritivoreShrimp
+	SUDECR = SmallSuspensiondepositfeedingCrabs
+	PAGURI = Pagurids
+	CARNCR = CarnivorousCrabs
+	ASTRUB = AsteriasRubens
+	OPHIUR = Ophiurids
+	ECHCOR = EchinocardiumCordatum
+	DETPOL = DetritivorePolychates
+	NEPHTY = Nephtyds
+	CARPOLP = CarnivorousPolychaetesP
+	CARPOLC = CarnivorousPolychaetesC
+	CARPOLPC = CarnivorousPolychaetePC
+	SUSWOR = SuspensionfeedingWorms
+	SUSBIV = SuspensionFeederBivalve
+	HSUDEBI = HerbivorousSuspensiondepositfeederBivalve
+	SUDEBI = SuspensiondepositfeederBivalve
+	BROGAS = BrowsingGastropods
+	SUSGAS = SuspensionfeederGastropod
+	SEPATL = SepiolaAtlantica
+	ZOOPLANKT = XNA
+	PHYTOPLANKT = XNA
+	SOM = SedOM
+	SPOM = SuspPOM
+	SEDBAC = SedBact
+	WATBAC = WatBact
+
+#### END STOCK
+
+
+
+#### EXTERNALS
+
+	DIC	  ! dissolved inorganic carbon
+	EXP	  ! export from the ecosystem (e.g. predation/currents)
+	BUR	  ! burial in the underlying sediment
+
+#### END EXTERNALS
+
+
+
+#### MARKER
+
+	CALLIO =  IsoCALLIO
+	CARANG =  IsoCARANG
+	GADIFO =  IsoGADIFO
+	GOBIFO =  IsoGOBIFO
+	MULLIF =  IsoMULLIF
+	COTTOI =  IsoCOTTOI
+	PERCOI =  IsoPERCOI
+	SCORPA =  IsoSCORPA
+	AMMODY =  IsoAMMODY
+	PLEURO =  IsoPLEURO
+	JELLY =  IsoJELLY
+	CUMACE =  IsoCUMACE
+	CALLIA =  IsoCALLIA
+	ISOPOD =  IsoISOPOD
+	DETAMP =  IsoDETAMP
+	DPAMP =  IsoDPAMP
+	DETSHR =  IsoDETSHR
+	SUDECR =  IsoSUDECR
+	PAGURI =  IsoPAGURI
+	CARNCR =  IsoCARNCR
+	ASTRUB =  IsoASTRUB
+	OPHIUR =  IsoOPHIUR
+	ECHCOR =  IsoECHCOR
+	DETPOL =  IsoDETPOL
+	NEPHTY =  IsoNEPHTY
+	CARPOLP =  IsoCARPOLP
+	CARPOLC =  IsoCARPOLC
+	CARPOLPC =  IsoCARPOLPC
+	SUSWOR =  IsoSUSWOR
+	SUSBIV =  IsoSUSBIV
+	HSUDEBI =  IsoHSUDEBI
+	SUDEBI =  IsoSUDEBI
+	BROGAS =  IsoBROGAS
+	SUSGAS =  IsoSUSGAS
+	SEPATL =  IsoSEPATL
+	ZOOPLANKT = IsoZOOPLANKT
+	PHYTOPLANKT = IsoPHYTOPLANKT
+	SOM  = IsoSOM
+	SPOM = IsoSPOM
+	SEDBAC = IsoSEDBAC
+	WATBAC = IsoWATBAC
+
+#### END MARKER
+
+
+
+#### FLOWS
+
+!-- Callionymus sp.
+	ISOPOD->CALLIO
+	DETAMP->CALLIO
+	DPAMP->CALLIO
+	DETSHR->CALLIO
+	SUDECR->CALLIO
+	PAGURI->CALLIO
+	CARNCR->CALLIO
+	OPHIUR->CALLIO
+	DETPOL->CALLIO
+	NEPHTY->CALLIO
+	CARPOLP->CALLIO
+	CARPOLC->CALLIO
+	CARPOLPC->CALLIO
+	SUSWOR->CALLIO
+	SUSBIV->CALLIO
+	HSUDEBI->CALLIO
+	SUDEBI->CALLIO
+	BROGAS->CALLIO
+	SUSGAS->CALLIO
+	ZOOPLANKT->CALLIO
+
+!-- Carangiformes
+	GOBIFO->CARANG
+	ISOPOD->CARANG
+	DETAMP->CARANG
+	DPAMP->CARANG
+	DETSHR->CARANG
+	SUSBIV->CARANG
+	HSUDEBI->CARANG
+	SUDEBI->CARANG
+	ZOOPLANKT->CARANG
+
+!-- Gadiformes
+	CALLIO->GADIFO
+	CARANG->GADIFO
+	GADIFO->GADIFO
+	GOBIFO->GADIFO
+	PERCOI->GADIFO
+	AMMODY->GADIFO
+	PLEURO->GADIFO
+	JELLY->GADIFO
+	CUMACE->GADIFO
+	ISOPOD->GADIFO
+	DETAMP->GADIFO
+	DPAMP->GADIFO
+	DETSHR->GADIFO
+	SUDECR->GADIFO
+	PAGURI->GADIFO
+	CARNCR->GADIFO
+	ASTRUB->GADIFO
+	OPHIUR->GADIFO
+	ECHCOR->GADIFO
+	DETPOL->GADIFO
+	NEPHTY->GADIFO
+	CARPOLP->GADIFO
+	CARPOLC->GADIFO
+	CARPOLPC->GADIFO
+	SUSWOR->GADIFO
+	SEPATL->GADIFO
+	ZOOPLANKT->GADIFO
+
+!-- Gobiformes
+	GOBIFO->GOBIFO
+	CUMACE->GOBIFO
+	DETAMP->GOBIFO
+	DPAMP->GOBIFO
+	DETSHR->GOBIFO
+	SUDECR->GOBIFO
+	CARNCR->GOBIFO
+	DETPOL->GOBIFO
+	NEPHTY->GOBIFO
+	CARPOLP->GOBIFO
+	CARPOLC->GOBIFO
+	CARPOLPC->GOBIFO
+	SUSWOR->GOBIFO
+	SUSBIV->GOBIFO
+	HSUDEBI->GOBIFO
+	SUDEBI->GOBIFO
+	BROGAS->GOBIFO
+	SUSGAS->GOBIFO
+	ZOOPLANKT->GOBIFO
+	ISOPOD->GOBIFO
+	SOM->GOBIFO
+	SPOM->GOBIFO
+
+!-- Mulliformes
+	AMMODY->MULLIF
+	DETAMP->MULLIF
+	DPAMP->MULLIF
+	DETSHR->MULLIF
+	SUDECR->MULLIF
+	PAGURI->MULLIF
+	CARNCR->MULLIF
+	OPHIUR->MULLIF
+	DETPOL->MULLIF
+	NEPHTY->MULLIF
+	CARPOLP->MULLIF
+	CARPOLC->MULLIF
+	CARPOLPC->MULLIF
+	SUSWOR->MULLIF
+	SUSBIV->MULLIF
+	HSUDEBI->MULLIF
+	SUDEBI->MULLIF
+	BROGAS->MULLIF
+	SUSGAS->MULLIF
+	ZOOPLANKT->MULLIF
+
+!-- Cottoidei
+	GOBIFO->COTTOI
+	DETAMP->COTTOI
+	DPAMP->COTTOI
+	DETSHR->COTTOI
+	SUDECR->COTTOI
+	PAGURI->COTTOI
+	CARNCR->COTTOI
+	DETPOL->COTTOI
+	NEPHTY->COTTOI
+	CARPOLP->COTTOI
+	CARPOLC->COTTOI
+	CARPOLPC->COTTOI
+	SUSWOR->COTTOI
+	SUSBIV->COTTOI
+	HSUDEBI->COTTOI
+	SUDEBI->COTTOI
+	BROGAS->COTTOI
+	SUSGAS->COTTOI
+	ZOOPLANKT->COTTOI
+
+!-- Percoidei
+	GOBIFO->PERCOI
+	CUMACE->PERCOI
+	CALLIA->PERCOI
+	ISOPOD->PERCOI
+	DETAMP->PERCOI
+	DPAMP->PERCOI
+	DETSHR->PERCOI
+	SUDECR->PERCOI
+	PAGURI->PERCOI
+	CARNCR->PERCOI
+	DETPOL->PERCOI
+	NEPHTY->PERCOI
+	CARPOLP->PERCOI
+	CARPOLC->PERCOI
+	CARPOLPC->PERCOI
+	ZOOPLANKT->PERCOI
+	SOM->PERCOI
+
+!-- Scorpaenidei
+	CALLIO->SCORPA
+	GADIFO->SCORPA
+	GOBIFO->SCORPA
+	AMMODY->SCORPA
+	PLEURO->SCORPA
+	CUMACE->SCORPA
+	ISOPOD->SCORPA
+	DETAMP->SCORPA
+	DPAMP->SCORPA
+	DETSHR->SCORPA
+	SUDECR->SCORPA
+	PAGURI->SCORPA
+	CARNCR->SCORPA
+	ZOOPLANKT->SCORPA
+
+!-- Ammodytidae
+	CARANG->AMMODY
+	GADIFO->AMMODY
+	GOBIFO->AMMODY
+	MULLIF->AMMODY
+	CUMACE->AMMODY
+	ISOPOD->AMMODY
+	DETAMP->AMMODY
+	DPAMP->AMMODY
+	DETSHR->AMMODY
+	ZOOPLANKT->AMMODY
+
+!-- Pleuronectiformes
+	AMMODY->PLEURO
+	PLEURO->PLEURO
+	CUMACE->PLEURO
+	CALLIA->PLEURO
+	ISOPOD->PLEURO
+	DETAMP->PLEURO
+	DPAMP->PLEURO
+	DETSHR->PLEURO
+	SUDECR->PLEURO
+	PAGURI->PLEURO
+	CARNCR->PLEURO
+	ASTRUB->PLEURO
+	OPHIUR->PLEURO
+	ECHCOR->PLEURO
+	DETPOL->PLEURO
+	NEPHTY->PLEURO
+	CARPOLP->PLEURO
+	CARPOLC->PLEURO
+	CARPOLPC->PLEURO
+	SUSWOR->PLEURO
+	SUSBIV->PLEURO
+	HSUDEBI->PLEURO
+	SUDEBI->PLEURO
+	ZOOPLANKT->PLEURO
+	GOBIFO->PLEURO
+	BROGAS->PLEURO
+	SUSGAS->PLEURO
+	SEPATL->PLEURO
+
+!-- Jellyfish
+	ZOOPLANKT->JELLY
+	SPOM->JELLY
+
+!-- Cumacea
+	ZOOPLANKT->CUMACE
+	PHYTOPLANKT->CUMACE
+	SOM->CUMACE
+	SPOM->CUMACE
+
+!-- Callianassidae
+	SOM->CALLIA
+	SPOM->CALLIA
+
+!-- Isopods
+	SOM->ISOPOD
+
+!-- Detritivore amphipods
+	SOM->DETAMP
+
+!-- Detritivore-Planktivore amphipods
+	SOM->DPAMP
+	ZOOPLANKT->DPAMP
+
+!-- DEtritivore shrimp
+	ZOOPLANKT->DETSHR
+	SOM->DETSHR
+	SPOM->DETSHR
+
+!-- Suspension-deposit feeding crabs
+	ZOOPLANKT->SUDECR
+	PHYTOPLANKT->SUDECR
+	SOM->SUDECR
+	SPOM->SUDECR
+
+!-- Paguridae
+	ZOOPLANKT->PAGURI
+	SOM->PAGURI
+	SPOM->PAGURI
+
+!-- Carnivorous crabs
+	GOBIFO->CARNCR
+	CUMACE->CARNCR
+	ISOPOD->CARNCR
+	DETAMP->CARNCR
+	DPAMP->CARNCR
+	DETSHR->CARNCR
+	SUDECR->CARNCR
+	PAGURI->CARNCR
+	DETPOL->CARNCR
+	NEPHTY->CARNCR
+	CARPOLP->CARNCR
+	CARPOLC->CARNCR
+	CARPOLPC->CARNCR
+	SUSWOR->CARNCR
+	SUSBIV->CARNCR
+	HSUDEBI->CARNCR
+	SUDEBI->CARNCR
+	BROGAS->CARNCR
+	SUSGAS->CARNCR
+	SOM->CARNCR
+
+!-- Asterias rubens
+	CUMACE->ASTRUB
+	ISOPOD->ASTRUB
+	DETAMP->ASTRUB
+	DPAMP->ASTRUB
+	SUDECR->ASTRUB
+	PAGURI->ASTRUB
+	CARNCR->ASTRUB
+	ASTRUB->ASTRUB
+	DETPOL->ASTRUB
+	NEPHTY->ASTRUB
+	CARPOLP->ASTRUB
+	CARPOLC->ASTRUB
+	CARPOLPC->ASTRUB
+	SUSWOR->ASTRUB
+	SUSBIV->ASTRUB
+	HSUDEBI->ASTRUB
+	SUDEBI->ASTRUB
+	BROGAS->ASTRUB
+	SUSGAS->ASTRUB
+	SOM->ASTRUB
+
+!-- Ophiurids
+	CUMACE->OPHIUR
+	ISOPOD->OPHIUR
+	DETAMP->OPHIUR
+	DPAMP->OPHIUR
+	DETSHR->OPHIUR
+	OPHIUR->OPHIUR
+	ECHCOR->OPHIUR
+	DETPOL->OPHIUR
+	NEPHTY->OPHIUR
+	CARPOLP->OPHIUR
+	CARPOLC->OPHIUR
+	CARPOLPC->OPHIUR
+	SUSWOR->OPHIUR
+	SUSBIV->OPHIUR
+	HSUDEBI->OPHIUR
+	SUDEBI->OPHIUR
+	BROGAS->OPHIUR
+	SUSGAS->OPHIUR
+	SOM->OPHIUR
+	SPOM->OPHIUR
+
+!-- Echinocardium cordatum
+	SOM->ECHCOR
+
+!-- Detritivore polychaetes
+	SOM->DETPOL
+
+!-- Nephtyds
+	DETPOL->NEPHTY
+	NEPHTY->NEPHTY
+	CARPOLP->NEPHTY
+	CARPOLC->NEPHTY
+	CARPOLPC->NEPHTY
+	SUSWOR->NEPHTY
+	SUSBIV->NEPHTY
+	HSUDEBI->NEPHTY
+	SUDEBI->NEPHTY
+	SOM->NEPHTY
+
+!-- Carnivorous polychaetes P
+	DETPOL->CARPOLP
+	NEPHTY->CARPOLP
+	CARPOLP->CARPOLP
+	CARPOLC->CARPOLP
+	CARPOLPC->CARPOLP
+	SUSWOR->CARPOLP
+	SOM->CARPOLP
+
+!-- Carnivorous polychaetes C
+	CUMACE->CARPOLC
+	ISOPOD->CARPOLC
+	DETAMP->CARPOLC
+	DPAMP->CARPOLC
+	DETSHR->CARPOLC
+	SOM->CARPOLC
+
+!-- Carnivorous polychaetes PC
+	CUMACE->CARPOLPC
+	ISOPOD->CARPOLPC
+	DETAMP->CARPOLPC
+	DPAMP->CARPOLPC
+	DETSHR->CARPOLPC
+	DETPOL->CARPOLPC
+	NEPHTY->CARPOLPC
+	CARPOLP->CARPOLPC
+	CARPOLC->CARPOLPC
+	CARPOLPC->CARPOLPC
+	SUSWOR->CARPOLPC
+	SOM->CARPOLPC
+
+!-- Suspension feeding worms
+	ZOOPLANKT->SUSWOR
+	PHYTOPLANKT->SUSWOR
+	SPOM->SUSWOR
+
+!-- Suspension feeding bivalves
+	ZOOPLANKT->SUSBIV
+	PHYTOPLANKT->SUSBIV
+	SPOM->SUSBIV
+
+!-- Herbivorous suspension-deposit feeding bivalves
+	PHYTOPLANKT->HSUDEBI
+	SOM->HSUDEBI
+	SPOM->HSUDEBI
+
+!-- Suspension deposit feeding bivalves
+	ZOOPLANKT->SUDEBI
+	PHYTOPLANKT->SUDEBI
+	SOM->SUDEBI
+	SPOM->SUDEBI
+
+!-- Browsing gastropods
+	SOM->BROGAS
+
+!-- Suspension feeding gastropods
+	PHYTOPLANKT->SUSGAS
+	SPOM->SUSGAS
+
+!-- Sepiola atlantica
+	GOBIFO->SEPATL
+	CUMACE->SEPATL
+	ISOPOD->SEPATL
+	DETAMP->SEPATL
+	DPAMP->SEPATL
+	DETSHR->SEPATL
+	SUDECR->SEPATL
+	PAGURI->SEPATL
+	CARNCR->SEPATL
+	ZOOPLANKT->SEPATL
+
+	!-- Plankton
+	PHYTOPLANKT->ZOOPLANKT
+	DIC->PHYTOPLANKT
+
+	!-- Bacteria
+	SOM->SEDBAC
+	SEDBAC->SOM
+	SPOM->WATBAC
+	WATBAC->SPOM
+
+!-- To SOM/SPOM
+	CALLIO->SPOM
+	CARANG->SPOM
+	GADIFO->SPOM
+	GOBIFO->SPOM
+	MULLIF->SPOM
+	COTTOI->SPOM
+	PERCOI->SPOM
+	SCORPA->SPOM
+	AMMODY->SPOM
+	PLEURO->SPOM
+	JELLY->SPOM
+	ZOOPLANKT->SPOM
+	PHYTOPLANKT->SPOM
+
+	SPOM->SOM
+	CUMACE->SOM
+	CALLIA->SOM
+	ISOPOD->SOM
+	DETAMP->SOM
+	DPAMP->SOM
+	DETSHR->SOM
+	SUDECR->SOM
+	PAGURI->SOM
+	CARNCR->SOM
+	ASTRUB->SOM
+	OPHIUR->SOM
+	ECHCOR->SOM
+	DETPOL->SOM
+	NEPHTY->SOM
+	CARPOLP->SOM
+	CARPOLC->SOM
+	CARPOLPC->SOM
+	SUSWOR->SOM
+	SUSBIV->SOM
+	HSUDEBI->SOM
+	SUDEBI->SOM
+	BROGAS->SOM
+	SUSGAS->SOM
+	SEPATL->SOM
+
+!-- To DIC
+	CALLIO->DIC
+	CARANG->DIC
+	GADIFO->DIC
+	GOBIFO->DIC
+	MULLIF->DIC
+	COTTOI->DIC
+	PERCOI->DIC
+	SCORPA->DIC
+	AMMODY->DIC
+	PLEURO->DIC
+	JELLY->DIC
+	CUMACE->DIC
+	CALLIA->DIC
+	ISOPOD->DIC
+	DETAMP->DIC
+	DPAMP->DIC
+	DETSHR->DIC
+	SUDECR->DIC
+	PAGURI->DIC
+	CARNCR->DIC
+	ASTRUB->DIC
+	OPHIUR->DIC
+	ECHCOR->DIC
+	DETPOL->DIC
+	NEPHTY->DIC
+	CARPOLP->DIC
+	CARPOLC->DIC
+	CARPOLPC->DIC
+	SUSWOR->DIC
+	SUSBIV->DIC
+	HSUDEBI->DIC
+	SUDEBI->DIC
+	BROGAS->DIC
+	SUSGAS->DIC
+	SEPATL->DIC
+	SEDBAC->DIC
+	WATBAC->DIC
+	ZOOPLANKT->DIC
+ !   PHYTOPLANKT->DIC
+
+!-- to EXPORT
+	CALLIO->EXP
+	CARANG->EXP
+	GADIFO->EXP
+	GOBIFO->EXP
+	MULLIF->EXP
+	COTTOI->EXP
+	PERCOI->EXP
+	SCORPA->EXP
+	AMMODY->EXP
+	PLEURO->EXP
+	JELLY->EXP
+	CUMACE->EXP
+	CALLIA->EXP
+	ISOPOD->EXP
+	DETAMP->EXP
+	DPAMP->EXP
+	DETSHR->EXP
+	SUDECR->EXP
+	PAGURI->EXP
+	CARNCR->EXP
+	ASTRUB->EXP
+	OPHIUR->EXP
+	ECHCOR->EXP
+	DETPOL->EXP
+	NEPHTY->EXP
+	CARPOLP->EXP
+	CARPOLC->EXP
+	CARPOLPC->EXP
+	SUSWOR->EXP
+	SUSBIV->EXP
+	HSUDEBI->EXP
+	SUDEBI->EXP
+	BROGAS->EXP
+	SUSGAS->EXP
+	SEPATL->EXP
+	ZOOPLANKT->EXP
+	PHYTOPLANKT->EXP
+	SEDBAC->EXP
+	WATBAC->EXP
+
+!-- BURIAL
+	SOM->BUR
+
+#### END FLOWS
+
+
+
+#### VARIABLES
+
+   !- Metabolism
+	!-- Fish
+
+	!--- Callionymiformes
+	RespCALLIO = CALLIO->DIC
+	UptaCALLIO = Flowto(CALLIO)
+	AssiCALLIO = UptaCALLIO - CALLIO-> SPOM
+	ProdCALLIO = AssiCALLIO - RespCALLIO
+
+	!--- Carangiformes
+	RespCARANG = CARANG->DIC
+	UptaCARANG = Flowto(CARANG)
+	AssiCARANG = UptaCARANG - CARANG -> SPOM
+	ProdCARANG = AssiCARANG - RespCARANG
+
+	!--- Gadiformes
+	RespGADIFO = GADIFO->DIC
+	UptaGADIFO = Flowto(GADIFO)
+	AssiGADIFO = UptaGADIFO - GADIFO -> SPOM
+	ProdGADIFO = AssiGADIFO - RespGADIFO
+
+	!--- Gobiiformes
+	RespGOBIFO = GOBIFO->DIC
+	UptaGOBIFO = Flowto(GOBIFO)
+	AssiGOBIFO = UptaGOBIFO - GOBIFO -> SPOM
+	ProdGOBIFO = AssiGOBIFO - RespGOBIFO
+
+	!--- Mulliformes
+	RespMULLIF = MULLIF -> DIC
+	UptaMULLIF = Flowto(MULLIF)
+	AssiMULLIF = UptaMULLIF - MULLIF -> SPOM
+	ProdMULLIF = AssiMULLIF - RespMULLIF
+
+	!--- Cottoidei
+	RespCOTTOI = COTTOI->DIC
+	UptaCOTTOI = Flowto(COTTOI)
+	AssiCOTTOI = UptaCOTTOI - COTTOI -> SPOM
+	ProdCOTTOI = AssiCOTTOI - RespCOTTOI
+
+	!--- Percoidei
+	RespPERCOI = PERCOI->DIC
+	UptaPERCOI = Flowto(PERCOI)
+	AssiPERCOI = UptaPERCOI - PERCOI -> SPOM
+	ProdPERCOI = AssiPERCOI - RespPERCOI
+
+	!--- Scorpaenidei
+	RespSCORPA = SCORPA->DIC
+	UptaSCORPA = Flowto(SCORPA)
+	AssiSCORPA = UptaSCORPA - SCORPA -> SPOM
+	ProdSCORPA = AssiSCORPA - RespSCORPA
+
+	!--- Ammodytidae
+	RespAMMODY = AMMODY->DIC
+	UptaAMMODY = Flowto(AMMODY)
+	AssiAMMODY = UptaAMMODY - AMMODY -> SPOM
+	ProdAMMODY = AssiAMMODY - RespAMMODY	
+
+	!--- Pleuronectiformes
+	RespPLEURO = PLEURO->DIC
+	UptaPLEURO = Flowto(PLEURO)
+	AssiPLEURO = UptaPLEURO - PLEURO -> SPOM
+	ProdPLEURO = AssiPLEURO - RespPLEURO
+
+	!-- Jellyfish
+	RespJELLY = JELLY -> DIC
+	UptaJELLY = Flowto(JELLY)
+	AssiJELLY = UptaJELLY - JELLY -> SPOM
+	ProdJELLY = AssiJELLY - RespJELLY
+
+	!-- Cumaceans
+	RespCUMACE = CUMACE -> DIC
+	UptaCUMACE = Flowto(CUMACE)
+	AssiCUMACE = UptaCUMACE - CUMACE -> SOM
+	ProdCUMACE = AssiCUMACE - RespCUMACE
+
+	!-- Callianassidae 
+	RespCALLIA = CALLIA -> DIC
+	UptaCALLIA = Flowto(CALLIA)
+	AssiCALLIA = UptaCALLIA - CALLIA -> SOM
+	ProdCALLIA = AssiCALLIA - RespCALLIA
+
+	!-- Isopoda 
+	RespISOPOD = ISOPOD -> DIC
+	UptaISOPOD = Flowto(ISOPOD)
+	AssiISOPOD = UptaISOPOD - ISOPOD -> SOM
+	ProdISOPOD = AssiISOPOD - RespISOPOD
+
+	!-- Detritivore amphipods 
+	RespDETAMP = DETAMP -> DIC
+	UptaDETAMP = Flowto(DETAMP)
+	AssiDETAMP = UptaDETAMP - DETAMP -> SOM
+	ProdDETAMP = AssiDETAMP - RespDETAMP
+
+	!-- Detritivore-planktivore amphipods
+	RespDPAMP = DPAMP -> DIC
+	UptaDPAMP = Flowto(DPAMP)
+	AssiDPAMP = UptaDPAMP - DPAMP -> SOM
+	ProdDPAMP = AssiDPAMP - RespDPAMP
+
+	!-- Detritivore shrimp
+	RespDETSHR = DETSHR -> DIC
+	UptaDETSHR = Flowto(DETSHR)
+	AssiDETSHR = UptaDETSHR - DETSHR -> SOM
+	ProdDETSHR = AssiDETSHR - RespDETSHR
+
+	!-- Small suspension-deposit feeding crabs
+	RespSUDECR = SUDECR -> DIC
+	UptaSUDECR = Flowto(SUDECR)
+	AssiSUDECR = UptaSUDECR - SUDECR -> SOM
+	ProdSUDECR = AssiSUDECR - RespSUDECR
+
+	!-- Pagurids
+	RespPAGURI = PAGURI -> DIC
+	UptaPAGURI = Flowto(PAGURI)
+	AssiPAGURI = UptaPAGURI - PAGURI -> SOM
+	ProdPAGURI = AssiPAGURI - RespPAGURI
+
+	!-- Carnivorous crabs
+	RespCARNCR = CARNCR -> DIC
+	UptaCARNCR = Flowto(CARNCR)
+	AssiCARNCR = UptaCARNCR - CARNCR -> SOM
+	ProdCARNCR = AssiCARNCR - RespCARNCR
+
+	!-- Asterias rubens
+	RespASTRUB = ASTRUB -> DIC
+	UptaASTRUB = Flowto(ASTRUB)
+	AssiASTRUB = UptaASTRUB - ASTRUB -> SOM
+	ProdASTRUB = AssiASTRUB - RespASTRUB
+
+	!-- Ophiurids
+	RespOPHIUR = OPHIUR -> DIC
+	UptaOPHIUR = Flowto(OPHIUR)
+	AssiOPHIUR = UptaOPHIUR - OPHIUR -> SOM
+	ProdOPHIUR = AssiOPHIUR - RespOPHIUR
+
+	!-- Echinoidea
+	RespECHCOR = ECHCOR -> DIC
+	UptaECHCOR = Flowto(ECHCOR)
+	AssiECHCOR = UptaECHCOR - ECHCOR -> SOM
+	ProdECHCOR = AssiECHCOR - RespECHCOR
+
+	!-- Detritivore polychates
+	RespDETPOL = DETPOL -> DIC
+	UptaDETPOL = Flowto(DETPOL)
+	AssiDETPOL = UptaDETPOL - DETPOL -> SOM
+	ProdDETPOL = AssiDETPOL - RespDETPOL
+
+	!-- Nephtids
+	RespNEPHTY = NEPHTY -> DIC
+	UptaNEPHTY = Flowto(NEPHTY)
+	AssiNEPHTY = UptaNEPHTY - NEPHTY -> SOM
+	ProdNEPHTY = AssiNEPHTY - RespNEPHTY
+
+	!-- Carnivorous polychaetes subdivided per main prey.
+	!--- Polychaete
+	RespCARPOLP = CARPOLP -> DIC
+	UptaCARPOLP = Flowto(CARPOLP)
+	AssiCARPOLP = UptaCARPOLP - CARPOLP -> SOM
+	ProdCARPOLP = AssiCARPOLP - RespCARPOLP
+
+	!--- Crustacea
+	RespCARPOLC = CARPOLC -> DIC
+	UptaCARPOLC = Flowto(CARPOLC)
+	AssiCARPOLC = UptaCARPOLC - CARPOLC -> SOM
+	ProdCARPOLC = AssiCARPOLC - RespCARPOLC
+
+	!--- Polychaete and crustacea
+	RespCARPOLPC = CARPOLPC -> DIC
+	UptaCARPOLPC = Flowto(CARPOLPC)
+	AssiCARPOLPC = UptaCARPOLPC - CARPOLPC -> SOM
+	ProdCARPOLPC = AssiCARPOLPC - RespCARPOLPC
+
+	!-- Suspension feeding polychaetes / phoronids
+	RespSUSWOR = SUSWOR -> DIC
+	UptaSUSWOR = Flowto(SUSWOR)
+	AssiSUSWOR = UptaSUSWOR - SUSWOR -> SOM
+	ProdSUSWOR = AssiSUSWOR - RespSUSWOR
+
+	!-- Suspension feeder bivalves
+	RespSUSBIV = SUSBIV -> DIC
+	UptaSUSBIV = Flowto(SUSBIV)
+	AssiSUSBIV = UptaSUSBIV - SUSBIV -> SOM
+	ProdSUSBIV = AssiSUSBIV - RespSUSBIV
+
+	!-- suspension-deposit feeder bivalves
+	!--- Herbivorous
+	RespHSUDEBI = HSUDEBI -> DIC
+	UptaHSUDEBI = Flowto(HSUDEBI)
+	AssiHSUDEBI = UptaHSUDEBI - HSUDEBI -> SOM
+	ProdHSUDEBI = AssiHSUDEBI - RespHSUDEBI
+
+	!--- Zooplankton also
+	RespSUDEBI = SUDEBI -> DIC
+	UptaSUDEBI = Flowto(SUDEBI)
+	AssiSUDEBI = UptaSUDEBI - SUDEBI -> SOM
+	ProdSUDEBI = AssiSUDEBI - RespSUDEBI
+
+	!-- Grazing/browsing gastropods
+	RespBROGAS = BROGAS -> DIC
+	UptaBROGAS = Flowto(BROGAS)
+	AssiBROGAS = UptaBROGAS - BROGAS -> SOM
+	ProdBROGAS = AssiBROGAS - RespBROGAS
+
+	!-- Suspension-feeder gastropods
+	RespSUSGAS = SUSGAS -> DIC
+	UptaSUSGAS = Flowto(SUSGAS)
+	AssiSUSGAS = UptaSUSGAS - SUSGAS -> SOM
+	ProdSUSGAS = AssiSUSGAS - RespSUSGAS
+
+	!-- Sepiola atlantica
+	RespSEPATL = SEPATL -> DIC
+	UptaSEPATL = Flowto(SEPATL)
+	AssiSEPATL = UptaSEPATL - SEPATL -> SOM
+	ProdSEPATL = AssiSEPATL - RespSEPATL
+
+	!-- Zooplankton
+	!RespZOOPLANKT = ZOOPLANKT -> DIC
+	!UptaZOOPLANKT = Flowto(ZOOPLANKT)
+	!AssiZOOPLANKT = UptaZOOPLANKT - ZOOPLANKT -> SPOM
+	!ProdZOOPLANKT = AssiZOOPLANKT - RespZOOPLANKT
+
+	!-- Phytoplankton
+	!-- Upta of Prod moet aan iets equated worden.
+	!RespPHYTOPLANKT = PHYTOPLANKT -> DIC
+	!UptaPHYTOPLANKT = Flowto(PHYTOPLANKT)
+	!ProdPHYTOPLANKT = UptaPHYTOPLANKT - RespPHYTOPLANKT 
+
+	!-- Water bacteria
+	RespWATBAC = WATBAC->DIC
+	UptaWATBAC = Flowto(WATBAC)
+	ProdWATBAC = UptaWATBAC - RespWATBAC
+
+	!-- Sediment bacteria
+	RespSEDBAC = SEDBAC->DIC
+	UptaSEDBAC = Flowto(SEDBAC)
+	ProdSEDBAC = UptaSEDBAC - RespSEDBAC
+
+	!-- Various
+	SOMbur = SOM -> BUR
+
+	!-- Totals
+
+	RespFish = RespCALLIO + &
+	RespCARANG + RespGADIFO +  RespGOBIFO + RespMULLIF + &
+	RespCOTTOI + RespPERCOI +  RespSCORPA + RespAMMODY + &
+	RespPLEURO
+
+	RespBenthos =  RespCUMACE + RespCALLIA + &
+	RespISOPOD + RespDETAMP + RespDPAMP + RespDETSHR + &
+	RespSUDECR + RespPAGURI + RespCARNCR + RespASTRUB + &
+	RespOPHIUR +  RespECHCOR + RespDETPOL + RespNEPHTY + &
+	RespCARPOLP + RespCARPOLC + RespCARPOLPC + RespSUSWOR + &
+	RespSUSBIV + RespHSUDEBI + RespSUDEBI + RespBROGAS + &
+	RespSUSGAS
+
+	RespTotal = RespBenthos + RespSEDBAC
+
+
+#### END VARIABLES
+
+
+
+#### EQUATION
+
+	DIC->PHYTOPLANKT = 250
+
+	!- Isotopic massbalances
+	!-- Callionymus sp.
+
+	CALLIOmassbalance: flowto(CALLIO)*IsoCALLIO = flowto(CALLIO)*FracCALLIO + &
+	ISOPOD->CALLIO*IsoISOPOD + DETAMP->CALLIO*IsoDETAMP + &
+	DPAMP->CALLIO*IsoDPAMP + DETSHR->CALLIO*IsoDETSHR + &
+	SUDECR->CALLIO*IsoSUDECR + PAGURI->CALLIO*IsoPAGURI + &
+	CARNCR->CALLIO*IsoCARNCR + OPHIUR->CALLIO*IsoOPHIUR + &
+	DETPOL->CALLIO*IsoDETPOL + NEPHTY->CALLIO*IsoNEPHTY + &
+	CARPOLP->CALLIO*IsoCARPOLP + CARPOLC->CALLIO*IsoCARPOLC + &
+	CARPOLPC->CALLIO*IsoCARPOLPC + SUSWOR->CALLIO*IsoSUSWOR + &
+	SUSBIV->CALLIO*IsoSUSBIV + HSUDEBI->CALLIO*IsoHSUDEBI + &
+	SUDEBI->CALLIO*IsoSUDEBI + BROGAS->CALLIO*IsoBROGAS + &
+	SUSGAS->CALLIO*IsoSUSGAS + ZOOPLANKT->CALLIO*IsoZOOPLANKT
+
+
+!-- Carangiformes
+	CARANGmassbalance: flowto(CARANG)*IsoCARANG = flowto(CARANG)*FracCARANG + &
+	GOBIFO->CARANG*IsoGOBIFO + ISOPOD->CARANG*IsoISOPOD + &
+	DETAMP->CARANG*IsoDETAMP + DPAMP->CARANG*IsoDPAMP + &
+	DETSHR->CARANG*IsoDETSHR + SUSBIV->CARANG*IsoSUSBIV + &
+	HSUDEBI->CARANG*IsoHSUDEBI + SUDEBI->CARANG*IsoSUDEBI + &
+	ZOOPLANKT->CARANG*IsoZOOPLANKT
+
+!-- Gadiformes
+	GADIFOmassbalance: flowto(GADIFO)*IsoGADIFO = flowto(GADIFO)*FracGADIFO + &
+	CALLIO->GADIFO*IsoCALLIO + CARANG->GADIFO*IsoCARANG + &
+	GADIFO->GADIFO*IsoGADIFO + GOBIFO->GADIFO*IsoGOBIFO + &
+	PERCOI->GADIFO*IsoPERCOI + AMMODY->GADIFO*IsoAMMODY + &
+	PLEURO->GADIFO*IsoPLEURO + JELLY->GADIFO*IsoJELLY + &
+	CUMACE->GADIFO*IsoCUMACE + ISOPOD->GADIFO*IsoISOPOD + &
+	DETAMP->GADIFO*IsoDETAMP + DPAMP->GADIFO*IsoDPAMP + &
+	DETSHR->GADIFO*IsoDETSHR + SUDECR->GADIFO*IsoSUDECR + &
+	PAGURI->GADIFO*IsoPAGURI + CARNCR->GADIFO*IsoCARNCR + &
+	ASTRUB->GADIFO*IsoASTRUB + OPHIUR->GADIFO*IsoOPHIUR + &
+	ECHCOR->GADIFO*IsoECHCOR + DETPOL->GADIFO*IsoDETPOL + &
+	NEPHTY->GADIFO*IsoNEPHTY + CARPOLP->GADIFO*IsoCARPOLP + &
+	CARPOLC->GADIFO*IsoCARPOLC + CARPOLPC->GADIFO*IsoCARPOLPC + & 
+	SUSWOR->GADIFO*IsoSUSWOR + SEPATL->GADIFO*IsoSEPATL + &
+	ZOOPLANKT->GADIFO*IsoZOOPLANKT
+
+!-- Gobiformes
+	GOBIFOmassbalance: flowto(GOBIFO)*IsoGOBIFO = flowto(GOBIFO)*FracGOBIFO + & 
+	GOBIFO->GOBIFO*IsoGOBIFO + CUMACE->GOBIFO*IsoCUMACE + &
+	DETAMP->GOBIFO*IsoDETAMP + DPAMP->GOBIFO*IsoDPAMP + &
+	DETSHR->GOBIFO*IsoDETSHR + SUDECR->GOBIFO*IsoSUDECR + &
+	CARNCR->GOBIFO*IsoCARNCR + DETPOL->GOBIFO*IsoDETPOL + &
+	NEPHTY->GOBIFO*IsoNEPHTY + CARPOLP->GOBIFO*IsoCARPOLP + &
+	CARPOLC->GOBIFO*IsoCARPOLC + CARPOLPC->GOBIFO*IsoCARPOLPC + &
+	SUSWOR->GOBIFO*IsoSUSWOR + SUSBIV->GOBIFO*IsoSUSBIV + &
+	HSUDEBI->GOBIFO*IsoHSUDEBI + SUDEBI->GOBIFO*IsoSUDEBI + &
+	BROGAS->GOBIFO*IsoBROGAS + SUSGAS->GOBIFO*IsoSUSGAS + &
+	ZOOPLANKT->GOBIFO*IsoZOOPLANKT + ISOPOD->GOBIFO*IsoISOPOD + &
+	SOM->GOBIFO*IsoSOM + SPOM->GOBIFO*IsoSPOM
+
+!-- Mulliformes
+	MULLIFmassbalance: flowto(MULLIF)*IsoMULLIF = flowto(MULLIF)*FracMULLIF + & 
+	AMMODY->MULLIF*IsoAMMODY + DETAMP->MULLIF*IsoDETAMP + &
+	DPAMP->MULLIF*IsoDPAMP + DETSHR->MULLIF*IsoDETSHR + &
+	SUDECR->MULLIF*IsoSUDECR + PAGURI->MULLIF*IsoPAGURI + &
+	CARNCR->MULLIF*IsoCARNCR + OPHIUR->MULLIF*IsoOPHIUR + &
+	DETPOL->MULLIF*IsoDETPOL + NEPHTY->MULLIF*IsoNEPHTY + &
+	CARPOLP->MULLIF*IsoCARPOLP + CARPOLC->MULLIF*IsoCARPOLC + &
+	CARPOLPC->MULLIF*IsoCARPOLPC + SUSWOR->MULLIF*IsoSUSWOR + &
+	SUSBIV->MULLIF*IsoSUSBIV + HSUDEBI->MULLIF*IsoHSUDEBI + &
+	SUDEBI->MULLIF*IsoSUDEBI + BROGAS->MULLIF*IsoBROGAS + &
+	SUSGAS->MULLIF*IsoSUSGAS + ZOOPLANKT->MULLIF*IsoZOOPLANKT
+
+!-- Cottoidei
+	COTTOImassbalance: flowto(COTTOI)*IsoCOTTOI = flowto(COTTOI)*FracCOTTOI + & 
+	GOBIFO->COTTOI*IsoGOBIFO + DETAMP->COTTOI*IsoDETAMP + &
+	DPAMP->COTTOI*IsoDPAMP + DETSHR->COTTOI*IsoDETSHR + &
+	SUDECR->COTTOI*IsoSUDECR + PAGURI->COTTOI*IsoPAGURI + &
+	CARNCR->COTTOI*IsoCARNCR + DETPOL->COTTOI*IsoDETPOL + &
+	NEPHTY->COTTOI*IsoNEPHTY + CARPOLP->COTTOI*IsoCARPOLP + &
+	CARPOLC->COTTOI*IsoCARPOLC + CARPOLPC->COTTOI*IsoCARPOLPC + &
+	SUSWOR->COTTOI*IsoSUSWOR + SUSBIV->COTTOI*IsoSUSBIV + &
+	HSUDEBI->COTTOI*IsoHSUDEBI + SUDEBI->COTTOI*IsoSUDEBI + &
+	BROGAS->COTTOI*IsoBROGAS + SUSGAS->COTTOI*IsoSUSGAS + &
+	ZOOPLANKT->COTTOI*IsoZOOPLANKT
+
+!-- Percoidei
+	PERCOImassbalance: flowto(PERCOI)*IsoPERCOI = flowto(PERCOI)*FracPERCOI + & 
+	GOBIFO->PERCOI*IsoGOBIFO + CUMACE->PERCOI*IsoCUMACE + &
+	CALLIA->PERCOI*IsoCALLIA + ISOPOD->PERCOI*IsoISOPOD + &
+	DETAMP->PERCOI*IsoDETAMP + DPAMP->PERCOI*IsoDPAMP + &
+	DETSHR->PERCOI*IsoDETSHR + SUDECR->PERCOI*IsoSUDECR + &
+	PAGURI->PERCOI*IsoPAGURI + CARNCR->PERCOI*IsoCARNCR + &
+	DETPOL->PERCOI*IsoDETPOL + NEPHTY->PERCOI*IsoNEPHTY + &
+	CARPOLP->PERCOI*IsoCARPOLP + CARPOLC->PERCOI*IsoCARPOLC + &
+	CARPOLPC->PERCOI*IsoCARPOLPC + ZOOPLANKT->PERCOI*IsoZOOPLANKT + &
+	SOM->PERCOI*IsoSOM
+
+!-- Scorpaenidei
+	SCORPAmassbalance: flowto(SCORPA)*IsoSCORPA = flowto(SCORPA)*FracSCORPA + & 
+	CALLIO->SCORPA*IsoCALLIO + GADIFO->SCORPA*IsoGADIFO + &
+	GOBIFO->SCORPA*IsoGOBIFO + AMMODY->SCORPA*IsoAMMODY + &
+	PLEURO->SCORPA*IsoPLEURO + CUMACE->SCORPA*IsoCUMACE + &
+	ISOPOD->SCORPA*IsoISOPOD + DETAMP->SCORPA*IsoDETAMP + &
+	DPAMP->SCORPA*IsoDPAMP + DETSHR->SCORPA*IsoDETSHR + &
+	SUDECR->SCORPA*IsoSUDECR + PAGURI->SCORPA*IsoPAGURI + &
+	CARNCR->SCORPA*IsoCARNCR + ZOOPLANKT->SCORPA*IsoZOOPLANKT
+
+!-- Ammodytidae
+	AMMODYmassbalance: flowto(AMMODY)*IsoAMMODY = flowto(AMMODY)*FracAMMODY + & 
+	CARANG->AMMODY*IsoCARANG + GADIFO->AMMODY*IsoGADIFO + &
+	GOBIFO->AMMODY*IsoGOBIFO + MULLIF->AMMODY*IsoMULLIF + &
+	CUMACE->AMMODY*IsoCUMACE + ISOPOD->AMMODY*IsoISOPOD + &
+	DETAMP->AMMODY*IsoDETAMP + DPAMP->AMMODY*IsoDPAMP + &
+	DETSHR->AMMODY*IsoDETSHR + ZOOPLANKT->AMMODY*IsoZOOPLANKT
+
+!-- Pleuronectiformes
+	PLEUROmassbalance: flowto(PLEURO)*IsoPLEURO = flowto(PLEURO)*FracPLEURO + &
+	AMMODY->PLEURO*IsoAMMODY + PLEURO->PLEURO*IsoPLEURO + &
+	CUMACE->PLEURO*IsoCUMACE + CALLIA->PLEURO*IsoCALLIA + &
+	ISOPOD->PLEURO*IsoISOPOD + DETAMP->PLEURO*IsoDETAMP + &
+	DPAMP->PLEURO*IsoDPAMP + DETSHR->PLEURO*IsoDETSHR + &
+	SUDECR->PLEURO*IsoSUDECR + PAGURI->PLEURO*IsoPAGURI + & 
+	CARNCR->PLEURO*IsoCARNCR + ASTRUB->PLEURO*IsoASTRUB + &
+	OPHIUR->PLEURO*IsoOPHIUR + ECHCOR->PLEURO*IsoECHCOR + &
+	DETPOL->PLEURO*IsoDETPOL + NEPHTY->PLEURO*IsoNEPHTY + &
+	CARPOLP->PLEURO*IsoCARPOLP + CARPOLC->PLEURO*IsoCARPOLC + &
+	CARPOLPC->PLEURO*IsoCARPOLPC + SUSWOR->PLEURO*IsoSUSWOR + &
+	SUSBIV->PLEURO*IsoSUSBIV + HSUDEBI->PLEURO*IsoHSUDEBI + &
+	SUDEBI->PLEURO*IsoSUDEBI + ZOOPLANKT->PLEURO*IsoZOOPLANKT + &
+	GOBIFO->PLEURO*IsoGOBIFO + BROGAS->PLEURO*IsoBROGAS + &
+	SUSGAS->PLEURO*IsoSUSGAS + SEPATL->PLEURO*IsoSEPATL
+
+!-- Jellyfish
+	JELLYmassbalance: flowto(JELLY)*IsoJELLY = flowto(JELLY)*FracJELLY + &
+	ZOOPLANKT->JELLY*IsoZOOPLANKT + SPOM->JELLY*IsoSPOM
+
+!-- Cumacea
+	CUMACEmassbalance: flowto(CUMACE)*IsoCUMACE = flowto(CUMACE)*FracCUMACE + &
+	ZOOPLANKT->CUMACE*IsoZOOPLANKT + PHYTOPLANKT->CUMACE*IsoPHYTOPLANKT + &
+	SOM->CUMACE*IsoSOM + SPOM->CUMACE*IsoSPOM
+
+!-- Callianassidae
+	CALLIAmassbalance: flowto(CALLIA)*IsoCALLIA = flowto(CALLIA)*FracCALLIA + &
+	SOM->CALLIA*IsoSOM + SPOM->CALLIA*IsoSPOM
+
+!-- Isopods
+	!SOM->ISOPOD
+
+!-- Detritivore amphipods
+	!SOM->DETAMP
+
+!-- Detritivore-Planktivore amphipods
+	DPAMPmassbalance: flowto(DPAMP)*IsoDPAMP = flowto(DPAMP)*FracDPAMP + &	
+	SOM->DPAMP*IsoSOM + ZOOPLANKT->DPAMP*IsoZOOPLANKT
+
+!-- Detritivore shrimp
+	DETSHRmassbalance: flowto(DETSHR)*IsoDETSHR = flowto(DETSHR)*FracDETSHR + &
+	ZOOPLANKT->DETSHR*IsoZOOPLANKT + SOM->DETSHR*IsoSOM + &
+	SPOM->DETSHR*IsoSPOM
+
+!-- Suspension-deposit feeding crabs
+	SUDECRmassbalance: flowto(SUDECR)*IsoSUDECR = flowto(SUDECR)*FracSUDECR + &
+	ZOOPLANKT->SUDECR*IsoZOOPLANKT + PHYTOPLANKT->SUDECR*IsoPHYTOPLANKT + &
+	SOM->SUDECR*IsoSOM + SPOM->SUDECR*IsoSPOM
+
+!-- Paguridae
+	PAGURImassbalance: flowto(PAGURI)*IsoPAGURI = flowto(PAGURI)*FracPAGURI + &
+	ZOOPLANKT->PAGURI*IsoZOOPLANKT + SOM->PAGURI*IsoSOM + &
+	SPOM->PAGURI*IsoSPOM
+
+!-- Carnivorous crabs
+	CARNCRmassbalance: flowto(CARNCR)*IsoCARNCR = flowto(CARNCR)*FracCARNCR + &
+	GOBIFO->CARNCR*IsoGOBIFO + CUMACE->CARNCR*IsoCUMACE + &
+	ISOPOD->CARNCR*IsoISOPOD + DETAMP->CARNCR*IsoDETAMP + &
+	DPAMP->CARNCR*IsoDPAMP + DETSHR->CARNCR*IsoDETSHR + &
+	SUDECR->CARNCR*IsoSUDECR + PAGURI->CARNCR*IsoPAGURI + &
+	DETPOL->CARNCR*IsoDETPOL + NEPHTY->CARNCR*IsoNEPHTY + &
+	CARPOLP->CARNCR*IsoCARPOLP + CARPOLC->CARNCR*IsoCARPOLC + &
+	CARPOLPC->CARNCR*IsoCARPOLPC + SUSWOR->CARNCR*IsoSUSWOR + &
+	SUSBIV->CARNCR*IsoSUSBIV + HSUDEBI->CARNCR*IsoHSUDEBI + &
+	SUDEBI->CARNCR*IsoSUDEBI + BROGAS->CARNCR*IsoBROGAS + &
+	SUSGAS->CARNCR*IsoSUSGAS + SOM->CARNCR*IsoSOM
+
+!-- Asterias rubens
+	ASTRUBmassbalance: flowto(ASTRUB)*IsoASTRUB = flowto(ASTRUB)*FracASTRUB + &
+	CUMACE->ASTRUB*IsoCUMACE + ISOPOD->ASTRUB*IsoISOPOD + &
+	DETAMP->ASTRUB*IsoDETAMP + DPAMP->ASTRUB*IsoDPAMP + &
+	SUDECR->ASTRUB*IsoSUDECR + PAGURI->ASTRUB*IsoPAGURI + &
+	CARNCR->ASTRUB*IsoCARNCR + ASTRUB->ASTRUB*IsoASTRUB + &
+	DETPOL->ASTRUB*IsoDETPOL + NEPHTY->ASTRUB*IsoNEPHTY + &
+	CARPOLP->ASTRUB*IsoCARPOLP + CARPOLC->ASTRUB*IsoCARPOLC + &
+	CARPOLPC->ASTRUB*IsoCARPOLPC + SUSWOR->ASTRUB*IsoSUSWOR + &
+	SUSBIV->ASTRUB*IsoSUSBIV + HSUDEBI->ASTRUB*IsoHSUDEBI + &
+	SUDEBI->ASTRUB*IsoSUDEBI + BROGAS->ASTRUB*IsoBROGAS + &
+	SUSGAS->ASTRUB*IsoSUSGAS + SOM->ASTRUB*IsoSOM
+
+!-- Ophiurids
+	OPHIURmassbalance: flowto(OPHIUR)*IsoOPHIUR = flowto(OPHIUR)*FracOPHIUR + &
+	CUMACE->OPHIUR*IsoCUMACE + ISOPOD->OPHIUR*IsoISOPOD + &
+	DETAMP->OPHIUR*IsoDETAMP + DPAMP->OPHIUR*IsoDPAMP + &
+	DETSHR->OPHIUR*IsoDETSHR + OPHIUR->OPHIUR*IsoOPHIUR + &
+	ECHCOR->OPHIUR*IsoECHCOR + DETPOL->OPHIUR*IsoDETPOL + &
+	NEPHTY->OPHIUR*IsoNEPHTY + CARPOLP->OPHIUR*IsoCARPOLP + &
+	CARPOLC->OPHIUR*IsoCARPOLC + CARPOLPC->OPHIUR*IsoCARPOLPC + &
+	SUSWOR->OPHIUR*IsoSUSWOR + SUSBIV->OPHIUR*IsoSUSBIV + &
+	HSUDEBI->OPHIUR*IsoHSUDEBI + SUDEBI->OPHIUR*IsoSUDEBI + &
+	BROGAS->OPHIUR*IsoBROGAS + SUSGAS->OPHIUR*IsoSUSGAS + &
+	SOM->OPHIUR*IsoSOM + SPOM->OPHIUR*IsoSPOM
+
+!-- Echinocardium cordatum
+	!SOM->ECHCOR
+
+!-- Detritivore polychaetes
+	!SOM->DETPOL
+
+!-- Nephtyds
+	NEPHTYmassbalance: flowto(NEPHTY)*IsoNEPHTY = flowto(NEPHTY)*FracNEPHTY + &
+	DETPOL->NEPHTY*IsoDETPOL + NEPHTY->NEPHTY*IsoNEPHTY + &
+	CARPOLP->NEPHTY*IsoCARPOLP + CARPOLC->NEPHTY*IsoCARPOLC + &
+	CARPOLPC->NEPHTY*IsoCARPOLPC + SUSWOR->NEPHTY*IsoSUSWOR + &
+	SUSBIV->NEPHTY*IsoSUSBIV + HSUDEBI->NEPHTY*IsoHSUDEBI + &
+	SUDEBI->NEPHTY*IsoSUDEBI + SOM->NEPHTY*IsoSOM
+
+!-- Carnivorous polychaetes P
+	CARPOLPmassbalance: flowto(CARPOLP)*IsoCARPOLP = flowto(CARPOLP)*FracCARPOLP + &
+	DETPOL->CARPOLP*IsoDETPOL + NEPHTY->CARPOLP*IsoNEPHTY + &
+	CARPOLP->CARPOLP*IsoCARPOLP + CARPOLC->CARPOLP*IsoCARPOLC + &
+	CARPOLPC->CARPOLP*IsoCARPOLPC + SUSWOR->CARPOLP*IsoSUSWOR + &
+	SOM->CARPOLP*IsoSOM
+
+!-- Carnivorous polychaetes C
+	CARPOLCmassbalance: flowto(CARPOLC)*IsoCARPOLC = flowto(CARPOLC)*FracCARPOLC + &
+	CUMACE->CARPOLC*IsoCUMACE + ISOPOD->CARPOLC*IsoISOPOD + &
+	DETAMP->CARPOLC*IsoDETAMP + DPAMP->CARPOLC*IsoDPAMP + &
+	DETSHR->CARPOLC*IsoDETSHR + SOM->CARPOLC*IsoSOM
+
+!-- Carnivorous polychaetes PC
+	CARPOLPCmassbalance: flowto(CARPOLPC)*IsoCARPOLPC = flowto(CARPOLPC)*FracCARPOLPC + &
+	CUMACE->CARPOLPC*IsoCUMACE + ISOPOD->CARPOLPC*IsoISOPOD + &
+	DETAMP->CARPOLPC*IsoDETAMP + DPAMP->CARPOLPC*IsoDPAMP + &
+	DETSHR->CARPOLPC*IsoDETSHR + DETPOL->CARPOLPC*IsoDETPOL + &
+	NEPHTY->CARPOLPC*IsoNEPHTY + CARPOLP->CARPOLPC*IsoCARPOLP + &
+	CARPOLC->CARPOLPC*IsoCARPOLC + CARPOLPC->CARPOLPC*IsoCARPOLPC + &
+	SUSWOR->CARPOLPC*IsoSUSWOR + SOM->CARPOLPC*IsoSOM
+
+!-- Suspension feeding worms
+	SUSWORmassbalance: flowto(SUSWOR)*IsoSUSWOR = flowto(SUSWOR)*FracSUSWOR + &
+	ZOOPLANKT->SUSWOR*IsoZOOPLANKT + PHYTOPLANKT->SUSWOR*IsoPHYTOPLANKT + &
+	SPOM->SUSWOR*IsoSPOM
+
+!-- Suspension feeding bivalves
+	SUSBIVmassbalance: flowto(SUSBIV)*IsoSUSBIV = flowto(SUSBIV)*FracSUSBIV + &
+	ZOOPLANKT->SUSBIV*IsoZOOPLANKT + PHYTOPLANKT->SUSBIV*IsoPHYTOPLANKT + &
+	SPOM->SUSBIV*IsoSPOM
+
+!-- Herbivorous suspension-deposit feeding bivalves
+	HSUDEBImassbalance: flowto(HSUDEBI)*IsoHSUDEBI = flowto(HSUDEBI)*FracHSUDEBI + &
+	PHYTOPLANKT->HSUDEBI*IsoPHYTOPLANKT + SOM->HSUDEBI*IsoSOM + &
+	SPOM->HSUDEBI*IsoSPOM
+
+!-- Suspension deposit feeding bivalves
+	SUDEBImassbalance: flowto(SUDEBI)*IsoSUDEBI = flowto(SUDEBI)*FracSUDEBI + &
+	ZOOPLANKT->SUDEBI*IsoZOOPLANKT + PHYTOPLANKT->SUDEBI*IsoPHYTOPLANKT + &
+	SOM->SUDEBI*IsoSOM + SPOM->SUDEBI*IsoSPOM
+
+!-- Browsing gastropods
+	!SOM->BROGAS*IsoSOM
+
+!-- Suspension feeding gastropods
+	SUSGASmassbalance: flowto(SUSGAS)*IsoSUSGAS = flowto(SUSGAS)*FracSUSGAS + &
+	PHYTOPLANKT->SUSGAS*IsoPHYTOPLANKT + SPOM->SUSGAS*IsoSPOM
+
+!-- Sepiola atlantica
+	SEPATLmassbalance: flowto(SEPATL)*IsoSEPATL = flowto(SEPATL)*FracSEPATL + &
+	GOBIFO->SEPATL*IsoGOBIFO + CUMACE->SEPATL*IsoCUMACE + &
+	ISOPOD->SEPATL*IsoISOPOD + DETAMP->SEPATL*IsoDETAMP + &
+	DPAMP->SEPATL*IsoDPAMP + DETSHR->SEPATL*IsoDETSHR + &
+	SUDECR->SEPATL*IsoSUDECR + PAGURI->SEPATL*IsoPAGURI + &
+	CARNCR->SEPATL*IsoCARNCR + ZOOPLANKT->SEPATL*IsoZOOPLANKT
+
+!-- SOM burial flux
+	SOMbur = SOMburial
+
+#### END EQUATION
+
+
+
+#### CONSTRAINT
+
+	!- Respiration
+	RespCALLIO = [minRespLim, maxRespLim]*respirationCALLIO	
+	RespCARANG = [minRespLim, maxRespLim]*respirationCARANG
+	RespGADIFO = [minRespLim, maxRespLim]*respirationGADIFO
+	RespGOBIFO = [minRespLim, maxRespLim]*respirationGOBIFO
+	RespMULLIF = [minRespLim, maxRespLim]*respirationMULLIF
+	RespCOTTOI = [minRespLim, maxRespLim]*respirationCOTTOI
+	RespPERCOI = [minRespLim, maxRespLim]*respirationPERCOI
+	RespSCORPA = [minRespLim, maxRespLim]*respirationSCORPA
+	RespAMMODY = [minRespLim, maxRespLim]*respirationAMMODY
+	RespPLEURO = [minRespLim, maxRespLim]*respirationPLEURO
+	RespJELLY = [minRespLim, maxRespLim]*respirationJELLY
+	RespCUMACE = [minRespLim, maxRespLim]*respirationCUMACE
+	RespCALLIA = [minRespLim, maxRespLim]*respirationCALLIA
+	RespISOPOD = [minRespLim, maxRespLim]*respirationISOPOD
+	RespDETAMP = [minRespLim, maxRespLim]*respirationDETAMP
+	RespDPAMP = [minRespLim, maxRespLim]*respirationDPAMP
+	RespDETSHR = [minRespLim, maxRespLim]*respirationDETSHR
+	RespSUDECR = [minRespLim, maxRespLim]*respirationSUDECR
+	RespPAGURI = [minRespLim, maxRespLim]*respirationPAGURI
+	RespCARNCR = [minRespLim, maxRespLim]*respirationCARNCR
+	RespASTRUB = [minRespLim, maxRespLim]*respirationASTRUB
+	RespOPHIUR = [minRespLim, maxRespLim]*respirationOPHIUR
+	RespECHCOR = [minRespLim, maxRespLim]*respirationECHCOR
+	RespDETPOL = [minRespLim, maxRespLim]*respirationDETPOL
+	RespNEPHTY = [minRespLim, maxRespLim]*respirationNEPHTY
+	RespCARPOLP = [minRespLim, maxRespLim]*respirationCARPOLP
+	RespCARPOLC = [minRespLim, maxRespLim]*respirationCARPOLC
+	RespCARPOLPC = [minRespLim, maxRespLim]*respirationCARPOLPC
+	RespSUSWOR = [minRespLim, maxRespLim]*respirationSUSWOR
+	RespSUSBIV = [minRespLim, maxRespLim]*respirationSUSBIV
+	RespHSUDEBI = [minRespLim, maxRespLim]*respirationHSUDEBI
+	RespSUDEBI = [minRespLim, maxRespLim]*respirationSUDEBI
+	RespBROGAS = [minRespLim, maxRespLim]*respirationBROGAS
+	RespSUSGAS = [minRespLim, maxRespLim]*respirationSUSGAS
+	RespSEPATL = [minRespLim, maxRespLim]*respirationSEPATL
+	
+	!RespZOOPLANKT=[minRespLim, maxRespLim]*respirationZOOPLANKT
+	!RespPHYTOPLANKT=[minRespLim, maxRespLim]*respirationPHYTOPLANKT
+
+	!RespSEDBAC=[minRespLim, maxRespLim]*respirationSEDBAC
+	!RespWATBAC=[minRespLim, maxRespLim]*respirationWATBAC
+
+	RespTotal = [minSedResp, maxSedResp]
+
+	!- Physiological constraints
+	!--- Callionymiformes
+	AssiCALLIO = [minAE, maxAE]*UptaCALLIO
+	ProdCALLIO = [minPE, maxPE]*AssiCALLIO
+
+	!--- Carangiformes
+	AssiCARANG = [minAE, maxAE]*UptaCARANG
+	ProdCARANG = [minPE, maxPE]*AssiCARANG
+
+	!--- Gadiformes
+	AssiGADIFO = [minAE, maxAE]*UptaGADIFO
+	ProdGADIFO = [minPE, maxPE]*AssiGADIFO
+
+	!--- Gobiiformes
+	AssiGOBIFO = [minAE, maxAE]*UptaGOBIFO
+	ProdGOBIFO = [minPE, maxPE]*AssiGOBIFO
+
+	!--- Mulliformes
+	AssiMULLIF = [minAE, maxAE]*UptaMULLIF
+	ProdMULLIF = [minPE, maxPE]*AssiMULLIF
+
+	!--- Cottoidei
+	AssiCOTTOI = [minAE, maxAE]*UptaCOTTOI
+	ProdCOTTOI = [minPE, maxPE]*AssiCOTTOI
+
+	!--- Percoidei
+	AssiPERCOI = [minAE, maxAE]*UptaPERCOI
+	ProdPERCOI = [minPE, maxPE]*AssiPERCOI
+
+	!--- Scorpaenidei
+	AssiSCORPA = [minAE, maxAE]*UptaSCORPA
+	ProdSCORPA = [minPE, maxPE]*AssiSCORPA
+
+	!--- Ammodytidae
+	AssiAMMODY = [minAE, maxAE]*UptaAMMODY
+	ProdAMMODY = [minPE, maxPE]*AssiAMMODY
+
+	!--- Pleuronectiformes
+	AssiPLEURO = [minAE, maxAE]*UptaPLEURO
+	ProdPLEURO = [minPE, maxPE]*AssiPLEURO
+
+	!--- Jellyfish
+	AssiJELLY = [minAE, maxAE]*UptaJELLY
+	ProdJELLY = [minPE, maxPE]*AssiJELLY
+
+	!--- Cumaceans
+	AssiCUMACE = [minAE, maxAE]*UptaCUMACE
+	ProdCUMACE = [minPE, maxPE]*AssiCUMACE
+
+	!--- Callianassidae
+	AssiCALLIA = [minAE, maxAE]*UptaCALLIA
+	ProdCALLIA = [minPE, maxPE]*AssiCALLIA
+
+	!--- Isopods
+	AssiISOPOD = [minAE, maxAE]*UptaISOPOD
+	ProdISOPOD = [minPE, maxPE]*AssiISOPOD
+
+	!--- Detritivore amphipods
+	AssiDETAMP = [minAE, maxAE]*UptaDETAMP
+	ProdDETAMP = [minPE, maxPE]*AssiDETAMP
+
+	!--- Detritivore-planktivore amphipods
+	AssiDPAMP = [minAE, maxAE]*UptaDPAMP
+	ProdDPAMP = [minPE, maxPE]*AssiDPAMP
+
+	!--- Detritivore shrimp
+	AssiDETSHR = [minAE, maxAE]*UptaDETSHR
+	ProdDETSHR = [minPE, maxPE]*AssiDETSHR
+
+	!--- Small suspension-deposit feeding crabs
+	AssiSUDECR = [minAE, maxAE]*UptaSUDECR
+	ProdSUDECR = [minPE, maxPE]*AssiSUDECR
+
+	!--- Pagurids
+	AssiPAGURI = [minAE, maxAE]*UptaPAGURI
+	ProdPAGURI = [minPE, maxPE]*AssiPAGURI
+
+	!--- Carnivorous crabs
+	AssiCARNCR = [minAE, maxAE]*UptaCARNCR
+	ProdCARNCR = [minPE, maxPE]*AssiCARNCR
+
+	!--- Asterias rubens
+	AssiASTRUB = [minAE, maxAE]*UptaASTRUB
+	ProdASTRUB = [minPE, maxPE]*AssiASTRUB
+
+	!--- Ophiurids
+	AssiOPHIUR = [minAE, maxAE]*UptaOPHIUR
+	ProdOPHIUR = [minPE, maxPE]*AssiOPHIUR
+
+	!--- Echinoidea
+	AssiECHCOR = [minAE, maxAE]*UptaECHCOR
+	ProdECHCOR = [minPE, maxPE]*AssiECHCOR
+
+	!--- Detritivore polychates
+	AssiDETPOL = [minAE, maxAE]*UptaDETPOL
+	ProdDETPOL = [minPE, maxPE]*AssiDETPOL
+
+	!--- Nephtids
+	AssiNEPHTY = [minAE, maxAE]*UptaNEPHTY
+	ProdNEPHTY = [minPE, maxPE]*AssiNEPHTY
+
+	!--- Carnivorous polychaetes subdivided per main prey.
+	AssiCARPOLP = [minAE, maxAE]*UptaCARPOLP
+	ProdCARPOLP = [minPE, maxPE]*AssiCARPOLP
+
+	AssiCARPOLC = [minAE, maxAE]*UptaCARPOLC
+	ProdCARPOLC = [minPE, maxPE]*AssiCARPOLC
+
+	AssiCARPOLPC = [minAE, maxAE]*UptaCARPOLPC
+	ProdCARPOLPC = [minPE, maxPE]*AssiCARPOLPC
+
+	!--- Suspension feeding polychaetes / phoronids
+	AssiSUSWOR = [minAE, maxAE]*UptaSUSWOR
+	ProdSUSWOR = [minPE, maxPE]*AssiSUSWOR
+
+	!--- Suspension feeder bivalves
+	AssiSUSBIV = [minAE, maxAE]*UptaSUSBIV
+	ProdSUSBIV = [minPE, maxPE]*AssiSUSBIV
+
+	!--- Herbivorous suspension deposit feeder bivalves
+	AssiHSUDEBI = [minAE, maxAE]*UptaHSUDEBI
+	ProdHSUDEBI = [minPE, maxPE]*AssiHSUDEBI
+
+	!--- suspension-deposit feeder bivalves
+	AssiSUDEBI = [minAE, maxAE]*UptaSUDEBI
+	ProdSUDEBI = [minPE, maxPE]*AssiSUDEBI
+
+	!--- Grazing/browsing gastropods
+	AssiBROGAS = [minAE, maxAE]*UptaBROGAS
+	ProdBROGAS = [minPE, maxPE]*AssiBROGAS
+
+	!--- Suspension-feeder gastropods
+	AssiSUSGAS = [minAE, maxAE]*UptaSUSGAS
+	ProdSUSGAS = [minPE, maxPE]*AssiSUSGAS
+
+	!--- Sepiola atlantica
+	AssiSEPATL = [minAE, maxAE]*UptaSEPATL
+	ProdSEPATL = [minPE, maxPE]*AssiSEPATL
+
+	!-- Phytoplankton
+	! ProdPHYTOPLANKT = [minPGE, maxPGE]*UptaPHYTOPLANKT 
+
+	!-- Zooplankton
+	! AssiZOOPLANKT = [minAE, maxAE]*UptaZOOPLANKT
+
+	!-- Water bacteria
+	ProdWATBAC = [minBGE, maxBGE]*UptaWATBAC
+
+	!-- Sediment bacteria
+	ProdSEDBAC = [minBGE, maxBGE]*UptaSEDBAC
+
+#### END CONSTRAINT

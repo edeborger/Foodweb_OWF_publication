@@ -1,0 +1,1252 @@
+---
+title: "foodweb_D6"
+author: "Emil De Borger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+editor_options: 
+  markdown: 
+    wrap: 72
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+---
+
+
+# Description
+
+-   Runs the foodweb as specified in `/final_versions/owf.input`.
+
+-   Links between groups based on literature research.
+
+-   Ldei: Solves a linear inverse model using least distance programming
+    (i.e. minimizes sum of squared unknowns). $\min(∑ {Cost_i*x_i}^2)$
+    Subject to equalities and inequalities: $Ax = B$ $Gx>=H$
+
+-   ldei: Solves *underdetermined* inverse problem $\min(∑ {x_i}^2)$
+    subject to equalities and inequalities: $Ax = B$ $Gx>=H$
+    Underdetermined: number of independent equations \< number of
+    unknowns.
+
+```{r setup, include=FALSE}
+
+# Packages 
+require(LIM)
+require(splus2R)
+require(NetIndices)
+require(MASS)
+
+# Files
+File.owf <- "./final_versions/owf.input"
+
+```
+
+
+# Reading LIM and run ranges
+
+### Read LIM
+
+```{r}
+
+readLIM.owf   <- LIM::Read(file = File.owf, verbose = TRUE, checkLinear = TRUE)
+
+```
+
+# Solving LIM
+
+### Single solution and ranges
+
+```{r}
+
+readLIM.owf   <- LIM::Read(file = File.owf, verbose = TRUE, checkLinear = TRUE)
+# Ranges and solution
+LIM.owf      <- Setup(readLIM.owf)
+Solldeiowf   <- Ldei(LIM.owf, verbose = TRUE)
+Rangesowf    <- Xranges(LIM.owf,  central = T, ispos = T)
+varrangesowf <- Varranges(LIM.owf)
+
+# # Check validity of solution
+any((LIM.owf$A %*% Solldeiowf$X - LIM.owf$B)>1e-8)
+any((LIM.owf$G %*% Solldeiowf$X - LIM.owf$H)<(-1E-8))
+which(((LIM.owf$G %*% Solldeiowf$X - LIM.owf$H)<(-1E-8)))
+
+save(readLIM.owf, file = "./finalresults/readlimowf.rda")
+save(LIM.owf, file = "./finalresults/limowf.rda")
+save(Solldeiowf, file = "./finalresults/solldeiowf.rda")
+save(Rangesowf, file = "./finalresults/rangesowf.rda")
+save(varrangesowf, file = "./finalresults/varrangesowf.rda")
+
+```
+
+### Cluster computing
+
+- Evaluated online on NIOZ BIOINFORMATICS server
+
+### Load .rda elements
+
+```{r label, options}
+
+path <- "./owf_txtfiles/"
+filelist <- list.files(path = path, pattern = ".txt")
+  
+mcmcowf <- matrix(data = NA, nrow = 1, ncol = 853)
+
+for(i in (1:250)){ #length(filelist))){
+
+  new <- readLines(paste0(path, filelist[i]))
+  index <- which(new == "$acceptedratio")
+  new <- new[2:(index-2)]
+  l <- length(new)
+  
+  mat <- NULL
+  
+  print(filelist[i])
+  
+    for(j in seq(1, l, by = 51)){
+      sel <- new[j:(j+50)]
+      sel <- sel[-c(1:2)]
+      selclean <- gsub("\\s*\\[\\d+,\\]", "", sel)
+      
+      length <- length(scan(text = selclean[1]))
+      
+      values <- scan(text = selclean)
+      
+      newmat <- matrix(values, nrow = 49, ncol = length, byrow = TRUE)
+      
+      mat <- cbind(mat, newmat)
+    }
+
+ mcmcowf <- rbind(mcmcowf, mat)    
+
+}
+
+mcmcowf <- mcmcowf[-1,]
+
+Xowf <- mcmcowf
+
+```
+
+# Analysis of fluxes
+
+### Mean-sd of flows
+
+```{r}
+
+finalmatrix <- Xowf
+LIM         <- LIM.owf
+readLIM     <- readLIM.owf
+variranges  <- varrangesowf
+
+varrangesowfsel <- c(4,8,12,16,20,24,28,32,36,40,44,48,52)
+
+# Mean + SD of solutions.
+### Get mean±std
+meanvalues  <- cbind(LIM$Unknowns, colMeans(finalmatrix))
+standarddev <- cbind(LIM$Unknowns, sqrt(diag(var(finalmatrix))))
+
+### Add to dataframe
+minimum <- apply(finalmatrix, 2, min, na.rm = TRUE)
+maximum <- apply(finalmatrix, 2, max, na.rm = TRUE)
+
+flow       <- meanvalues[,1]
+mean       <- as.numeric(meanvalues[,2])
+std        <- as.numeric(standarddev[,2])
+Flows.owf  <- data.frame(flow, mean, std, minimum, maximum)
+
+### Save as excel sheet.
+write.csv(Flows.owf, paste("./finalresults/Flows_owf_iso.csv"))
+### The Flows data frame is saved as .Rdata file
+save(Flows.owf, file = paste0("./finalresults/Flows_owf_iso.Rdata"))
+
+### Get Flowmatrix with Bayesian solution.
+FM.owf <- getFlowMatrix(originalFM = LIM$Flowmatrix, 
+                         flows      = readLIM$flows , 
+                         answers    = Flows.owf[,"mean"])
+
+# Mean + SD of variable estimates
+Vals      <- data.frame(variranges)
+Vals$mean <- numeric(LIM$NVariables)
+Vals$std  <- numeric(LIM$NVariables)
+  
+vareq      <- readLIM$vars                # matrix which defines the variable equations
+parvec     <- readLIM$pars$val            # vector with parameter values
+flowvec    <- as.numeric(meanvalues[,2])  # vector with mean flow values
+flowstdvec <- as.numeric(standarddev[,2]) # vector with flow standard deviations
+
+
+for (j in 1:LIM$NVariables) {
+  # refresh vector with mean and std values
+  varvec <- Vals$mean
+  varstdvec <- Vals$std
+  
+  # Get subset with the same equation nr.
+  subset <- vareq[vareq$nr == j,] 
+    
+  # Take parameter, variable or flow nr from subset to use as index. 
+  # Use index to find the corresponding values.
+  # Multiply the values by 'val' which is the coefficient (like 1 or -1) and sum them.
+  sum <- 
+    sum(parvec[subset$par1]*subset$val, na.rm = TRUE) +
+    sum(parvec[subset$par2]*subset$val, na.rm = TRUE) +
+    sum(parvec[subset$par3]*subset$val, na.rm = TRUE) +
+    sum(parvec[subset$par4]*subset$val, na.rm = TRUE) +
+    sum(varvec[subset$var]*subset$val , na.rm = TRUE) +
+    sum(flowvec[subset$flow]*subset$val, na.rm = TRUE)  
+  
+  # Use index to find corresponding standard deviations.
+  # Sum squared standard deviations and take the square root.
+  stddev <- 
+    sqrt(
+      sum(flowstdvec[subset$flow]^2, na.rm = TRUE) +
+        sum(varstdvec[subset$var]^2, na.rm = TRUE)
+    )
+  
+  # Add values to data frame.
+  Vals$mean[j] = sum 
+  Vals$std[j]  = stddev
+}
+  
+# The Vals data frame is saved as .Rdata file.
+Vals_owf <- Vals
+save(Vals_owf, file = paste0("./finalresults/vals_owf_iso.Rdata"))
+
+# Clean up memory
+rm(finalmatrix, readLIM  , LIM        ,
+   meanvalues , mean     , standarddev, 
+   std        , stddev   , flow       , 
+   maximum    , minimum  , sum        ,
+   parvec     , varstdvec, flowstdvec , 
+   vareq      , flowvec  , Vals       ,
+   variranges , subset)
+
+```
+
+### Summary of fluxes
+
+```{r}
+
+Fish     <- c(LIM.owf$Components$name[1:13]) #String with fish.
+TFilters <- c(LIM.owf$Components$name[c(15,19,20,23,24,26)]) #String with only filter feeders.
+TEPLC    <- c(LIM.owf$Components$name[c(16:18,21,22,25,27:35)]) #Turbine-EPL community.
+SSed     <- c(LIM.owf$Components$name[36:54]) #Soft sediment community.
+Ubiq     <- c(LIM.owf$Components$name[55:59]) #Ubiquitous species.
+TEPL     <- c(c(TFilters, TEPLC))
+Benthos  <- c(c(TEPL, SSed, Ubiq))
+
+teplbivalves    <- c(LIM.owf$Components$name[19])  
+teplcrustacea   <- c(LIM.owf$Components$name[c(15, 26:30, 32:33)]) 
+teplpolychaetes <- c(LIM.owf$Components$name[c(16:18, 34)]) 
+teplothers      <- c(LIM.owf$Components$name[c(20:25, 31, 35)]) 
+
+ssedbivalves    <- c(LIM.owf$Components$name[48:50])  
+ssedcrustacea   <- c(LIM.owf$Components$name[36:41]) 
+ssedpolychaetes <- c(LIM.owf$Components$name[42:46]) 
+ssedothers      <- c(LIM.owf$Components$name[c(47, 51:54)]) 
+
+ubiqbivalves    <- c(0)  
+ubiqcrustacea   <- c(LIM.owf$Components$name[55]) 
+ubiqpolychaetes <- c(LIM.owf$Components$name[56:58]) 
+ubiqothers      <- c(LIM.owf$Components$name[59]) 
+
+## TEPL
+phytotepl <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", TEPL)))
+zootepl   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", TEPL)))
+spomtepl  <- which(Flows.owf$flow %in% c(paste0("SPOM->", TEPL)))
+somtepl   <- which(Flows.owf$flow %in% c(paste0("SOM->", TEPL)))
+benthtepl <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, TEPL, sep="->"))))
+
+phytobivtepl <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", teplbivalves)))
+zoobivtepl   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", teplbivalves)))
+spombivtepl  <- which(Flows.owf$flow %in% c(paste0("SPOM->", teplbivalves)))
+sombivtepl   <- which(Flows.owf$flow %in% c(paste0("SOM->", teplbivalves)))
+benthbivtepl <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, teplbivalves, sep="->"))))
+
+phytocrusttepl <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", teplcrustacea)))
+zoocrusttepl   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", teplcrustacea)))
+spomcrusttepl  <- which(Flows.owf$flow %in% c(paste0("SPOM->", teplcrustacea)))
+somcrusttepl   <- which(Flows.owf$flow %in% c(paste0("SOM->", teplcrustacea)))
+benthcrusttepl <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, teplcrustacea, sep="->"))))
+
+phytopolytepl <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", teplpolychaetes)))
+zoopolytepl   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", teplpolychaetes)))
+spompolytepl  <- which(Flows.owf$flow %in% c(paste0("SPOM->", teplpolychaetes)))
+sompolytepl   <- which(Flows.owf$flow %in% c(paste0("SOM->", teplpolychaetes)))
+benthpolytepl <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, teplpolychaetes, sep="->"))))
+
+phytoothtepl <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", teplothers)))
+zooothtepl   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", teplothers)))
+spomothtepl  <- which(Flows.owf$flow %in% c(paste0("SPOM->", teplothers)))
+somothtepl   <- which(Flows.owf$flow %in% c(paste0("SOM->", teplothers)))
+benthothtepl <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, teplothers, sep="->"))))
+
+## SSED
+phytossed <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", SSed)))
+zoossed   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", SSed)))
+spomssed  <- which(Flows.owf$flow %in% c(paste0("SPOM->", SSed)))
+somssed   <- which(Flows.owf$flow %in% c(paste0("SOM->", SSed)))
+benthssed <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, SSed, sep="->"))))
+
+phytobivssed <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", ssedbivalves)))
+zoobivssed   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", ssedbivalves)))
+spombivssed  <- which(Flows.owf$flow %in% c(paste0("SPOM->", ssedbivalves)))
+sombivssed   <- which(Flows.owf$flow %in% c(paste0("SOM->", ssedbivalves)))
+benthbivssed <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, ssedbivalves, sep="->"))))
+
+phytocrustssed <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", ssedcrustacea)))
+zoocrustssed   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", ssedcrustacea)))
+spomcrustssed  <- which(Flows.owf$flow %in% c(paste0("SPOM->", ssedcrustacea)))
+somcrustssed   <- which(Flows.owf$flow %in% c(paste0("SOM->", ssedcrustacea)))
+benthcrustssed <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, ssedcrustacea, sep="->"))))
+
+phytopolyssed <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", ssedpolychaetes)))
+zoopolyssed   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", ssedpolychaetes)))
+spompolyssed  <- which(Flows.owf$flow %in% c(paste0("SPOM->", ssedpolychaetes)))
+sompolyssed   <- which(Flows.owf$flow %in% c(paste0("SOM->", ssedpolychaetes)))
+benthpolyssed <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, ssedpolychaetes, sep="->"))))
+
+phytoothssed <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", ssedothers)))
+zooothssed   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", ssedothers)))
+spomothssed  <- which(Flows.owf$flow %in% c(paste0("SPOM->", ssedothers)))
+somothssed   <- which(Flows.owf$flow %in% c(paste0("SOM->", ssedothers)))
+benthothssed <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, ssedothers, sep="->"))))
+
+## UBIQ
+phytoubiq <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", Ubiq)))
+zooubiq   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", Ubiq)))
+spomubiq  <- which(Flows.owf$flow %in% c(paste0("SPOM->", Ubiq)))
+somubiq   <- which(Flows.owf$flow %in% c(paste0("SOM->", Ubiq)))
+benthubiq <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, Ubiq, sep="->"))))
+
+phytobivubiq <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", ubiqbivalves)))
+zoobivubiq   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", ubiqbivalves)))
+spombivubiq  <- which(Flows.owf$flow %in% c(paste0("SPOM->", ubiqbivalves)))
+sombivubiq   <- which(Flows.owf$flow %in% c(paste0("SOM->", ubiqbivalves)))
+benthbivubiq <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, ubiqbivalves, sep="->"))))
+
+phytocrustubiq <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", ubiqcrustacea)))
+zoocrustubiq   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", ubiqcrustacea)))
+spomcrustubiq  <- which(Flows.owf$flow %in% c(paste0("SPOM->", ubiqcrustacea)))
+somcrustubiq   <- which(Flows.owf$flow %in% c(paste0("SOM->", ubiqcrustacea)))
+benthcrustubiq <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, ubiqcrustacea, sep="->"))))
+
+phytopolyubiq <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", ubiqpolychaetes)))
+zoopolyubiq   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", ubiqpolychaetes)))
+spompolyubiq  <- which(Flows.owf$flow %in% c(paste0("SPOM->", ubiqpolychaetes)))
+sompolyubiq   <- which(Flows.owf$flow %in% c(paste0("SOM->", ubiqpolychaetes)))
+benthpolyubiq <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, ubiqpolychaetes, sep="->"))))
+
+phytoothubiq <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", ubiqothers)))
+zooothubiq   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", ubiqothers)))
+spomothubiq  <- which(Flows.owf$flow %in% c(paste0("SPOM->", ubiqothers)))
+somothubiq   <- which(Flows.owf$flow %in% c(paste0("SOM->", ubiqothers)))
+benthothubiq <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, ubiqothers, sep="->"))))
+
+
+cflows    <- c("OM deposition"         ,
+               "Fish respiration"      ,
+               "Jellyfish respiration" , 
+               "Bacterial respiration" ,
+               "Macrofauna respiration",
+               "Sediment respiration"  ,
+               "Water respiration"     ,
+               "Total respiration"     ,
+               "Burial"                ,
+               "Total export"          ,
+               "phytoplankton uptake macrofauna",
+               "zooplankton uptake macrofauna"  ,
+               "SOM uptake macrofauna"          ,
+               "SPOM uptake macrofauna"         ,
+               "Total uptake macrofauna"        ,
+               "SOM uptake bacteria"            ,
+               "SPOM uptake bacteria"           , 
+               "Uptake water bivalves"          ,
+               "Uptake water crustaceans"       ,
+               "Uptake water polychaetes"       ,
+               "Uptake water others"            ,
+               "Uptake SOM bivalves"            ,
+               "Uptake SOM crustaceans"         ,
+               "Uptake SOM polychaetes"         ,
+               "Uptake SOM others"              ,
+               "Total carbon outflow"           ,
+               "Total carbon inflow"            ,
+               "Phyto->Zoo",
+               "Zoo->SPOM",
+               "Phyto->SPOM",
+               "Zoo->Fish",
+               "SPOM->Fish",
+               "Fish->SPOM",
+               "WatBac->DIC",
+               "SPOM->WatBac",
+               "WatBac->SPOM",
+               "Zoo->Jelly",
+               "Jelly->SPOM",
+               "SOM->SedBac",
+               "SedBac->SOM",
+               "SOM->Burial",
+               "Phyto->TFilters",
+               "Phyto->SSed",
+               "Phyto->TEPLC",
+               "Phyto->Ubiq",
+               "Zoo->TFilters",
+               "Zoo->SSed",
+               "Zoo->TEPLC",
+               "Zoo->Ubiq",
+               "SPOM->TFilters",
+               "SPOM->SSed",
+               "SPOM->TEPLC",
+               "SPOM->Ubiq",
+               "SOM->SSed",
+               "SOM->TEPLC",
+               "SOM->Ubiq",
+               "TFilters->SPOM",
+               "TEPLC->SPOM",
+               "Ubiq->SPOM",
+               "SSed->SOM",
+               "TEPLC->SOM",
+               "Ubiq->SOM",
+               "Ubiq->TEPLC",
+               "TEPLC->Ubiq",
+               "Ubiq->TFilters",
+               "TFilters->Ubiq",
+               "TFilters->TEPLC",
+               "TEPLC->TFilters",
+               "TEPLC->SSed",
+               "SSed->TEPLC",
+               "SSed->Ubiq",
+               "Ubiq->SSed",
+               "TFilters->Fish",
+               "TEPLC->Fish",
+               "Ubiq->Fish",
+               "SSed->Fish",
+               "TFilters->DIC",
+               "TEPLC->DIC",
+               "Ubiq->DIC",
+               "SSed->DIC",
+               "Zoo->DIC",
+               "Fish->DIC",
+               "Jelly->DIC",
+               "SedBac->DIC",
+               "DIC->Phyto",
+               "Phyto->Tepl",
+               "Zoo->Tepl",
+               "SPOM->Tepl",
+               "SOM->Tepl",
+               "Benthos->Tepl",
+               "Phyto->bivalves-Tepl",
+               "Zoo->bivalves-Tepl",
+               "SPOM->bivalves-Tepl",
+               "SOM->bivalves-Tepl",
+               "Benthos->bivalves-Tepl",
+               "Phyto->crustaceans-Tepl",
+               "Zoo->crustaceans-Tepl",
+               "SPOM->crustaceans-Tepl",
+               "SOM->crustaceans-Tepl",
+               "Benthos->crustaceans-Tepl",
+               "Phyto->polychaetes-Tepl",
+               "Zoo->polychaetes-Tepl",
+               "SPOM->polychaetes-Tepl",
+               "SOM->polychaetes-Tepl",
+               "Benthos->polychaetes-Tepl",
+               "Phyto->others-Tepl",
+               "Zoo->others-Tepl",
+               "SPOM->others-Tepl",
+               "SOM->others-Tepl",
+               "Benthos->others-Tepl",
+               "Phyto->Ssed",
+               "Zoo->Ssed",
+               "SPOM->Ssed",
+               "SOM->Ssed",
+               "Benthos->Ssed",
+               "Phyto->bivalves-Ssed",
+               "Zoo->bivalves-Ssed",
+               "SPOM->bivalves-Ssed",
+               "SOM->bivalves-Ssed",
+               "Benthos->bivalves-Ssed",
+               "Phyto->crustaceans-Ssed",
+               "Zoo->crustaceans-Ssed",
+               "SPOM->crustaceans-Ssed",
+               "SOM->crustaceans-Ssed",
+               "Benthos->crustaceans-Ssed",
+               "Phyto->polychaetes-Ssed",
+               "Zoo->polychaetes-Ssed",
+               "SPOM->polychaetes-Ssed",
+               "SOM->polychaetes-Ssed",
+               "Benthos->polychaetes-Ssed",
+               "Phyto->others-Ssed",
+               "Zoo->others-Ssed",
+               "SPOM->others-Ssed",
+               "SOM->others-Ssed",
+               "Benthos->others-Ssed",
+               "Phyto->Ubiq",
+               "Zoo->Ubiq",
+               "SPOM->Ubiq",
+               "SOM->Ubiq",
+               "Benthos->Ubiq",
+               "Phyto->bivalves-Ubiq",
+               "Zoo->bivalves-Ubiq",
+               "SPOM->bivalves-Ubiq",
+               "SOM->bivalves-Ubiq",
+               "Benthos->bivalves-Ubiq",
+               "Phyto->crustaceans-Ubiq",
+               "Zoo->crustaceans-Ubiq",
+               "SPOM->crustaceans-Ubiq",
+               "SOM->crustaceans-Ubiq",
+               "Benthos->crustaceans-Ubiq",
+               "Phyto->polychaetes-Ubiq",
+               "Zoo->polychaetes-Ubiq",
+               "SPOM->polychaetes-Ubiq",
+               "SOM->polychaetes-Ubiq",
+               "Benthos->polychaetes-Ubiq",
+               "Phyto->others-Ubiq",
+               "Zoo->others-Ubiq",
+               "SPOM->others-Ubiq",
+               "SOM->others-Ubiq",
+               "Benthos->others-Ubiq",
+               "Phyto->Export",
+               "Zoo->Export",
+               "Fish->Export",
+               "Jelly->Export",
+               "Benthos->Export",
+               "ubiq->TFilters",
+               "TFilters->ubiq",
+               "ubiq->TEPLC",
+               "TEPLC->ubiq",
+               "ubiq->TEPL",
+               "TEPL->ubiq",
+               "SSed->TFilters",
+               "TFilters->SSed",
+               "SSed->TEPLC",
+               "TEPLC->SSed",
+               "SSed->TEPL",
+               "TEPL->SSed",
+               "SSed->ubiq",
+               "ubiq->SSed",
+               "TEPLC->TFilters",
+               "TFilters->TEPLC",
+               "TEPL->TEPL",
+               "SSed->SSed",
+               "ubiq->ubiq",
+               "SOM->TFilters",
+               "Filters->EXP",
+               "TEPLC->EXP",
+               "Ubiq->EXP",
+               "SSed->EXP",
+               "Zoo->EXP",
+               "Fish->EXP",
+               "JELL->EXP",
+               "SEDBAC->EXP"
+)
+
+
+
+
+restabowf   <- data.frame(name = cflows, mean = NA, std = NA, min = NA, max = NA)
+
+ii <- list(grep("SPOM->SOM", Flows.owf$flow), # OM depos.
+           c(728:740) ,         # Fish resp.
+           c(741)     ,         # Jelly resp.
+           c(787:788) ,         # Bact. resp.
+           c(742:786) ,         # Macrofauna resp.
+           c(742:787) ,         # Substrate resp. ( + sediment bacteria) => Not really representative inc. all macrofaina also on turbine, see below for more accurate est.
+           c(728:741, 788:789), # Water respiration
+           c(728:788) ,         # Total respiration
+           c(853)     ,         # Burial
+           c(790:853) ,         # Total export
+           grep("PHYTOPLANKT->", Flows.owf$flow)[1:18]    , # phytoplankton uptake macrofauna-
+           grep("ZOOPLANKT->", Flows.owf$flow)[c(15:30)]  , # Zooplankton uptake macrofauna-
+           grep("SOM->", Flows.owf$flow)[c(3:38)]         , # SOM uptake macrofauna-
+           grep("SPOM->", Flows.owf$flow)[c(3:21)]        , # SPOM uptake macrofauna-
+           c(grep("PHYTOPLANKT->", Flows.owf$flow)[1:18]  , # Total uptake macrofauna
+             grep("ZOOPLANKT->", Flows.owf$flow)[c(15:30)],
+             grep("SOM->", Flows.owf$flow)[c(3:38)]       ,
+             grep("SPOM->", Flows.owf$flow)[c(3:21)])     ,
+           grep("SOM->SEDBAC" , Flows.owf$flow)                , # SOM uptake sediment bact.
+           grep("SPOM->WATBAC", Flows.owf$flow)                , # SPOM uptake water bact.
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", Flows.owf$flow)[c(23:25, 61:65)]            , # Uptake water biv.
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", Flows.owf$flow)[c(18, 35:43, 45:54, 66, 67)], # Uptake water crust. + BALANOT
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", Flows.owf$flow)[c(19:22, 43:44,  55:60, 68)], # Uptake water poly.
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", Flows.owf$flow)[c(26:34)]                   , # Uptake water others.
+           grep("SOM->", Flows.owf$flow)[c(27:29)]                 , # Uptake sed. biv.
+           grep("SOM->", Flows.owf$flow)[c(7:11, 13:14, 17:22, 34)], # Uptake sed. crust.
+           grep("SOM->", Flows.owf$flow)[c(3:5, 15, 23:26, 35:37)]     , # Uptake sed. poly
+           grep("SOM->", Flows.owf$flow)[c(6, 11, 16, 30:33, 38)]  , # Uptake sed. others.
+           c(728:853)  , # burial + export + respiration (??)
+           grep("DIC->PHYTOPLANKT", Flows.owf$flow),
+           grep("PHYTOPLANKT->ZOOPLANKT", Flows.owf$flow),
+           grep("ZOOPLANKT->SPOM", Flows.owf$flow),
+           grep("PHYTOPLANKT->SPOM", Flows.owf$flow),
+           which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", Fish))),
+           which(Flows.owf$flow %in% c(paste0("SPOM->", Fish))),
+           which(Flows.owf$flow %in% c(paste0(Fish, "->SPOM"))),
+           grep("WATBAC->DIC", Flows.owf$flow),
+           grep("SPOM->WATBAC", Flows.owf$flow),
+           grep("WATBAC->SPOM", Flows.owf$flow),
+           grep("ZOOPLANKT->JELLY", Flows.owf$flow),
+           grep("JELLY->SPOM", Flows.owf$flow),
+           grep("SOM->SEDBAC", Flows.owf$flow),
+           grep("SEDBAC->SOM", Flows.owf$flow),
+           grep("SOM->BUR", Flows.owf$flow) ,
+           which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", TFilters))),
+           which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", SSed))),
+           which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", TEPLC))),
+           which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", Ubiq))),
+           which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", TFilters))),
+           which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", SSed))),
+           which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", TEPLC))),
+           which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", Ubiq))),
+           which(Flows.owf$flow %in% c(paste0("SPOM->", TFilters))),
+           which(Flows.owf$flow %in% c(paste0("SPOM->", SSed))),
+           which(Flows.owf$flow %in% c(paste0("SPOM->", TEPLC))),
+           which(Flows.owf$flow %in% c(paste0("SPOM->", Ubiq))),
+           which(Flows.owf$flow %in% c(paste0("SOM->", SSed))),
+           which(Flows.owf$flow %in% c(paste0("SOM->", TEPLC))),
+           which(Flows.owf$flow %in% c(paste0("SOM->", Ubiq))),
+           which(Flows.owf$flow %in% c(paste0(TFilters, "->SPOM"))),
+           which(Flows.owf$flow %in% c(paste0(TEPLC, "->SPOM"))),
+           which(Flows.owf$flow %in% c(paste0(Ubiq, "->SPOM"))),
+           which(Flows.owf$flow %in% c(paste0(SSed, "->SOM"))),
+           which(Flows.owf$flow %in% c(paste0(TEPLC, "->SOM"))),
+           which(Flows.owf$flow %in% c(paste0(Ubiq, "->SOM"))),
+           which(Flows.owf$flow %in% c(levels(interaction(Ubiq, TEPLC, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPLC, Ubiq, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(Ubiq, TFilters, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TFilters, Ubiq, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TFilters, TEPLC, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPLC, TFilters, sep="->")))), #0
+           which(Flows.owf$flow %in% c(levels(interaction(SSed, TEPLC, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPLC, SSed, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(SSed, Ubiq, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(Ubiq, SSed, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TFilters, Fish, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPLC, Fish, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(Ubiq, Fish, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(SSed, Fish, sep="->")))),
+           which(Flows.owf$flow %in% c(paste0(TFilters, "->", "DIC"))),
+           which(Flows.owf$flow %in% c(paste0(TEPLC, "->", "DIC"))),
+           which(Flows.owf$flow %in% c(paste0(Ubiq, "->", "DIC"))),
+           which(Flows.owf$flow %in% c(paste0(SSed, "->", "DIC"))),
+           grep("ZOOPLANKT->DIC", Flows.owf$flow),
+           which(Flows.owf$flow %in% c(paste0(Fish, "->", "DIC"))),
+           grep("JELLY->DIC", Flows.owf$flow),
+           grep("SEDBAC->DIC", Flows.owf$flow),
+           grep("DIC->PHYTOPLANKT", Flows.owf$flow),
+           phytotepl     ,
+           zootepl       ,
+           spomtepl      ,
+           somtepl       ,
+           benthtepl     ,
+           phytobivtepl  ,
+           zoobivtepl    ,
+           spombivtepl   ,
+           sombivtepl    ,
+           benthbivtepl  ,
+           phytocrusttepl,
+           zoocrusttepl  ,
+           spomcrusttepl ,
+           somcrusttepl  ,
+           benthcrusttepl,
+           phytopolytepl ,
+           zoopolytepl   ,
+           spompolytepl  ,
+           sompolytepl   ,
+           benthpolytepl ,
+           phytoothtepl  ,
+           zooothtepl    ,
+           spomothtepl   ,
+           somothtepl    ,
+           benthothtepl  ,
+           phytossed     ,
+           zoossed       ,
+           spomssed      ,
+           somssed       ,
+           benthssed     ,
+           phytobivssed  ,
+           zoobivssed    ,
+           spombivssed   ,
+           sombivssed    ,
+           benthbivssed  ,
+           phytocrustssed,
+           zoocrustssed  ,
+           spomcrustssed ,
+           somcrustssed  ,
+           benthcrustssed,
+           phytopolyssed ,
+           zoopolyssed   ,
+           spompolyssed  ,
+           sompolyssed   ,
+           benthpolyssed ,
+           phytoothssed  ,
+           zooothssed    ,
+           spomothssed   ,
+           somothssed    ,
+           benthothssed  ,
+           phytoubiq     ,
+           zooubiq       ,
+           spomubiq      ,
+           somubiq       ,
+           benthubiq     ,
+           phytobivubiq  ,
+           zoobivubiq    ,
+           spombivubiq   ,
+           sombivubiq    ,
+           benthbivubiq  ,
+           phytocrustubiq,
+           zoocrustubiq  ,
+           spomcrustubiq ,
+           somcrustubiq  ,
+           benthcrustubiq,
+           phytopolyubiq ,
+           zoopolyubiq   ,
+           spompolyubiq  ,
+           sompolyubiq   ,
+           benthpolyubiq ,
+           phytoothubiq  ,
+           zooothubiq    ,
+           spomothubiq   ,
+           somothubiq    ,
+           benthothubiq  ,
+           c(851)        ,
+           c(852)        ,
+           c(790:802)    ,
+           c(803)        ,
+           c(804:848)    ,
+           which(Flows.owf$flow %in% c(levels(interaction(Ubiq, TFilters, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TFilters, Ubiq, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(Ubiq, TEPLC, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPLC, Ubiq, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(Ubiq, TEPL, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPL, Ubiq, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(SSed, TFilters, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TFilters, SSed, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(SSed, TEPLC, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPLC, SSed, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(SSed, TEPL, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPL, SSed, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(SSed, Ubiq, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(Ubiq, SSed, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPLC, TFilters, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TFilters, TEPLC, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(TEPL, TEPL, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(SSed, SSed, sep="->")))),
+           which(Flows.owf$flow %in% c(levels(interaction(Ubiq, Ubiq, sep="->")))),
+           which(Flows.owf$flow %in% c(paste0("SOM->", TFilters))),
+           which(Flows.owf$flow %in% c(paste0(TFilters, "->", "EXP"))),
+           which(Flows.owf$flow %in% c(paste0(TEPLC, "->", "EXP"))),
+           which(Flows.owf$flow %in% c(paste0(Ubiq, "->", "EXP"))),
+           which(Flows.owf$flow %in% c(paste0(SSed, "->", "EXP"))),
+           grep("ZOOPLANKT->EXP", Flows.owf$flow),
+           which(Flows.owf$flow %in% c(paste0(Fish, "->", "EXP"))),
+           grep("JELLY->EXP", Flows.owf$flow),
+           grep("SEDBAC->EXP", Flows.owf$flow)
+           )
+
+for(i in (1:length(ii))){
+  print(Flows.owf$flow[ii[[i]]])
+}
+
+for(i in 1:length(ii)){
+  restabowf[i,"mean"] <- sum(Flows.owf$mean[ii[[i]]])
+  restabowf[i,"std"]  <- stdfromstd(Flows.owf$std[ii[[i]]])
+  restabowf[i,"min"]  <- sum(Flows.owf$minimum[ii[[i]]])
+  restabowf[i,"max"]  <- sum(Flows.owf$maximum[ii[[i]]])
+}
+
+knitr::kable(restabowf)
+
+save(restabowf, file = paste0("./finalresults/restab_owf_iso.Rdata"))
+write.csv(restabowf, file = "./finalresults/restabowf.csv", row.names = FALSE)
+
+
+#### Fish
+
+Fishowf <- NULL
+
+for(i in Fish){
+  
+  ii <- list(
+  phy   <- which(Flows.owf$flow %in% c(paste0("PHYTOPLANKT->", i))),
+  zoo   <- which(Flows.owf$flow %in% c(paste0("ZOOPLANKT->", i))),
+  spom  <- which(Flows.owf$flow %in% c(paste0("SPOM->", i))),
+  som   <- which(Flows.owf$flow %in% c(paste0("SOM->", i))),
+  
+  benth <- which(Flows.owf$flow %in% c(levels(interaction(Benthos, i, sep="->")))),
+  tepl  <- which(Flows.owf$flow %in% c(levels(interaction(TEPL, i, sep="->")))),
+  ssed  <- which(Flows.owf$flow %in% c(levels(interaction(SSed, i, sep="->")))), 
+  ubiq  <- which(Flows.owf$flow %in% c(levels(interaction(Ubiq, i, sep="->")))),
+  
+  teplbiv <- which(Flows.owf$flow %in% c(levels(interaction(teplbivalves, i, sep="->")))),
+  teplcru <- which(Flows.owf$flow %in% c(levels(interaction(teplcrustacea, i, sep="->")))),
+  teplpol <- which(Flows.owf$flow %in% c(levels(interaction(teplpolychaetes, i, sep="->")))),
+  teploth <- which(Flows.owf$flow %in% c(levels(interaction(teplothers, i, sep="->")))),  
+  
+  ssedbiv <- which(Flows.owf$flow %in% c(levels(interaction(ssedbivalves, i, sep="->")))),
+  ssedcru <- which(Flows.owf$flow %in% c(levels(interaction(ssedcrustacea, i, sep="->")))),
+  ssedpol <- which(Flows.owf$flow %in% c(levels(interaction(ssedpolychaetes, i, sep="->")))),
+  ssedoth <- which(Flows.owf$flow %in% c(levels(interaction(ssedothers, i, sep="->")))),
+    
+  ubiqbiv <- which(Flows.owf$flow %in% c(levels(interaction(ubiqbivalves, i, sep="->")))),
+  ubiqcru <- which(Flows.owf$flow %in% c(levels(interaction(ubiqcrustacea, i, sep="->")))),
+  ubiqpol <- which(Flows.owf$flow %in% c(levels(interaction(ubiqpolychaetes, i, sep="->")))),
+  ubiqoth <- which(Flows.owf$flow %in% c(levels(interaction(ubiqothers, i, sep="->")))), 
+  
+  pisc  <- which(Flows.owf$flow %in% c(levels(interaction(Fish, i, sep="->"))))
+  )
+  
+  nms <- c("Phyto", "Zoo", "SPOM", "SOM", "Benthos", "TEPL", "SSed", "Ubiq", 
+           "TeplBiv", "TeplCrust", "TeplPoly", "TeplOther",
+           "SSedBiv", "SSedCrust", "SSedPoly", "SSedOther",
+           "UbiqBiv", "UbiqCrust", "UbiqPoly", "UbiqOther",
+           "Fish")
+  new <- data.frame(Fish = NA, name = nms, mean = NA, std = NA, min = NA, max = NA)
+
+  for(j in 1:length(ii)){
+  new[j, "Fish"] <- i
+  new[j,"mean"] <- sum(Flows.owf$mean[ii[[j]]])
+  new[j,"std"]  <- stdfromstd(Flows.owf$std[ii[[j]]])
+  new[j,"min"]  <- sum(Flows.owf$minimum[ii[[j]]])
+  new[j,"max"]  <- sum(Flows.owf$maximum[ii[[j]]])
+  }
+  
+  Fishowf <- rbind(Fishowf, new)
+  
+}
+
+save(Fishowf     , file = paste0("./finalresults/fish_owf_iso.Rdata"))
+write.csv(Fishowf, file = "./finalresults/fishowf.csv", row.names = FALSE)
+
+
+```
+
+# Matrix for bootstrapping comparison
+
+```{r}
+
+bsowf <- Xowf
+colnames(bsowf) <- Flows.owf$flow
+
+ii <- list(grep("SPOM->SOM", colnames(bsowf)), # OM depos.
+           c(728:740) ,         # Fish resp.
+           c(741)     ,         # Jelly resp.
+           c(787:788) ,         # Bact. resp.
+           c(742:786) ,         # Macrofauna resp.
+           c(742:787) ,         # Substrate resp. ( + sediment bacteria) => Not really representative inc. all macrofaina also on turbine, see below for more accurate est.
+           c(728:741, 788:789), # Water respiration
+           c(728:788) ,         # Total respiration
+           c(853)     ,         # Burial
+           c(790:853) ,         # Total export
+           grep("PHYTOPLANKT->", colnames(bsowf))[1:18]    , # phytoplankton uptake macrofauna-
+           grep("ZOOPLANKT->", colnames(bsowf))[c(15:30)]  , # Zooplankton uptake macrofauna-
+           grep("SOM->", colnames(bsowf))[c(3:38)]         , # SOM uptake macrofauna-
+           grep("SPOM->", colnames(bsowf))[c(3:21)]        , # SPOM uptake macrofauna-
+           c(grep("PHYTOPLANKT->", colnames(bsowf))[1:18]  , # Total uptake macrofauna
+             grep("ZOOPLANKT->", colnames(bsowf))[c(15:30)],
+             grep("SOM->", colnames(bsowf))[c(3:38)]       ,
+             grep("SPOM->", colnames(bsowf))[c(3:21)])     ,
+           grep("SOM->SEDBAC" , colnames(bsowf))                , # SOM uptake sediment bact.
+           grep("SPOM->WATBAC", colnames(bsowf))                , # SPOM uptake water bact.
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", colnames(bsowf))[c(23:25, 61:65)]            , # Uptake water biv.
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", colnames(bsowf))[c(18, 35:43, 45:54, 66, 67)], # Uptake water crust. + BALANOT
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", colnames(bsowf))[c(19:22, 43:44,  55:60, 68)], # Uptake water poly.
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", colnames(bsowf))[c(26:34)]                   , # Uptake water others.
+           grep("SOM->", colnames(bsowf))[c(27:29)]                 , # Uptake sed. biv.
+           grep("SOM->", colnames(bsowf))[c(7:11, 13:14, 17:22, 34)], # Uptake sed. crust.
+           grep("SOM->", colnames(bsowf))[c(3:5, 15, 23:26, 35:37)]     , # Uptake sed. poly
+           grep("SOM->", colnames(bsowf))[c(6, 11, 16, 30:33, 38)]  , # Uptake sed. others.
+           c(728:853)  , # burial + export + respiration (??)
+           grep("DIC->PHYTOPLANKT", colnames(bsowf)),
+           grep("PHYTOPLANKT->ZOOPLANKT", colnames(bsowf)),
+           grep("ZOOPLANKT->SPOM", colnames(bsowf)),
+           grep("PHYTOPLANKT->SPOM", colnames(bsowf)),
+           which(colnames(bsowf) %in% c(paste0("ZOOPLANKT->", Fish))),
+           which(colnames(bsowf) %in% c(paste0("SPOM->", Fish))),
+           which(colnames(bsowf) %in% c(paste0(Fish, "->SPOM"))),
+           grep("WATBAC->DIC", colnames(bsowf)),
+           grep("SPOM->WATBAC", colnames(bsowf)),
+           grep("WATBAC->SPOM", colnames(bsowf)),
+           grep("ZOOPLANKT->JELLY", colnames(bsowf)),
+           grep("JELLY->SPOM", colnames(bsowf)),
+           grep("SOM->SEDBAC", colnames(bsowf)),
+           grep("SEDBAC->SOM", colnames(bsowf)),
+           grep("SOM->BUR", colnames(bsowf)) ,
+           which(colnames(bsowf) %in% c(paste0("PHYTOPLANKT->", TFilters))),
+           which(colnames(bsowf) %in% c(paste0("PHYTOPLANKT->", SSed))),
+           which(colnames(bsowf) %in% c(paste0("PHYTOPLANKT->", TEPLC))),
+           which(colnames(bsowf) %in% c(paste0("PHYTOPLANKT->", Ubiq))),
+           which(colnames(bsowf) %in% c(paste0("ZOOPLANKT->", TFilters))),
+           which(colnames(bsowf) %in% c(paste0("ZOOPLANKT->", SSed))),
+           which(colnames(bsowf) %in% c(paste0("ZOOPLANKT->", TEPLC))),
+           which(colnames(bsowf) %in% c(paste0("ZOOPLANKT->", Ubiq))),
+           which(colnames(bsowf) %in% c(paste0("SPOM->", TFilters))),
+           which(colnames(bsowf) %in% c(paste0("SPOM->", SSed))),
+           which(colnames(bsowf) %in% c(paste0("SPOM->", TEPLC))),
+           which(colnames(bsowf) %in% c(paste0("SPOM->", Ubiq))),
+           which(colnames(bsowf) %in% c(paste0("SOM->", SSed))),
+           which(colnames(bsowf) %in% c(paste0("SOM->", TEPLC))),
+           which(colnames(bsowf) %in% c(paste0("SOM->", Ubiq))),
+           which(colnames(bsowf) %in% c(paste0(TFilters, "->SPOM"))),
+           which(colnames(bsowf) %in% c(paste0(TEPLC, "->SPOM"))),
+           which(colnames(bsowf) %in% c(paste0(Ubiq, "->SPOM"))),
+           which(colnames(bsowf) %in% c(paste0(SSed, "->SOM"))),
+           which(colnames(bsowf) %in% c(paste0(TEPLC, "->SOM"))),
+           which(colnames(bsowf) %in% c(paste0(Ubiq, "->SOM"))),
+           which(colnames(bsowf) %in% c(levels(interaction(Ubiq, TEPLC, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPLC, Ubiq, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(Ubiq, TFilters, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TFilters, Ubiq, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TFilters, TEPLC, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPLC, TFilters, sep="->")))), #0
+           which(colnames(bsowf) %in% c(levels(interaction(SSed, TEPLC, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPLC, SSed, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(SSed, Ubiq, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(Ubiq, SSed, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TFilters, Fish, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPLC, Fish, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(Ubiq, Fish, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(SSed, Fish, sep="->")))),
+           which(colnames(bsowf) %in% c(paste0(TFilters, "->", "DIC"))),
+           which(colnames(bsowf) %in% c(paste0(TEPLC, "->", "DIC"))),
+           which(colnames(bsowf) %in% c(paste0(Ubiq, "->", "DIC"))),
+           which(colnames(bsowf) %in% c(paste0(SSed, "->", "DIC"))),
+           grep("ZOOPLANKT->DIC", colnames(bsowf)),
+           which(colnames(bsowf) %in% c(paste0(Fish, "->", "DIC"))),
+           grep("JELLY->DIC", colnames(bsowf)),
+           grep("SEDBAC->DIC", colnames(bsowf)),
+           grep("DIC->PHYTOPLANKT", colnames(bsowf)),
+           phytotepl     ,
+           zootepl       ,
+           spomtepl      ,
+           somtepl       ,
+           benthtepl     ,
+           phytobivtepl  ,
+           zoobivtepl    ,
+           spombivtepl   ,
+           sombivtepl    ,
+           benthbivtepl  ,
+           phytocrusttepl,
+           zoocrusttepl  ,
+           spomcrusttepl ,
+           somcrusttepl  ,
+           benthcrusttepl,
+           phytopolytepl ,
+           zoopolytepl   ,
+           spompolytepl  ,
+           sompolytepl   ,
+           benthpolytepl ,
+           phytoothtepl  ,
+           zooothtepl    ,
+           spomothtepl   ,
+           somothtepl    ,
+           benthothtepl  ,
+           phytossed     ,
+           zoossed       ,
+           spomssed      ,
+           somssed       ,
+           benthssed     ,
+           phytobivssed  ,
+           zoobivssed    ,
+           spombivssed   ,
+           sombivssed    ,
+           benthbivssed  ,
+           phytocrustssed,
+           zoocrustssed  ,
+           spomcrustssed ,
+           somcrustssed  ,
+           benthcrustssed,
+           phytopolyssed ,
+           zoopolyssed   ,
+           spompolyssed  ,
+           sompolyssed   ,
+           benthpolyssed ,
+           phytoothssed  ,
+           zooothssed    ,
+           spomothssed   ,
+           somothssed    ,
+           benthothssed  ,
+           phytoubiq     ,
+           zooubiq       ,
+           spomubiq      ,
+           somubiq       ,
+           benthubiq     ,
+           phytobivubiq  ,
+           zoobivubiq    ,
+           spombivubiq   ,
+           sombivubiq    ,
+           benthbivubiq  ,
+           phytocrustubiq,
+           zoocrustubiq  ,
+           spomcrustubiq ,
+           somcrustubiq  ,
+           benthcrustubiq,
+           phytopolyubiq ,
+           zoopolyubiq   ,
+           spompolyubiq  ,
+           sompolyubiq   ,
+           benthpolyubiq ,
+           phytoothubiq  ,
+           zooothubiq    ,
+           spomothubiq   ,
+           somothubiq    ,
+           benthothubiq  ,
+           c(851)        ,
+           c(852)        ,
+           c(790:802)    ,
+           c(803)        ,
+           c(804:848)    ,
+           which(colnames(bsowf) %in% c(levels(interaction(Ubiq, TFilters, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TFilters, Ubiq, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(Ubiq, TEPLC, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPLC, Ubiq, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(Ubiq, TEPL, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPL, Ubiq, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(SSed, TFilters, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TFilters, SSed, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(SSed, TEPLC, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPLC, SSed, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(SSed, TEPL, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPL, SSed, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(SSed, Ubiq, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(Ubiq, SSed, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPLC, TFilters, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TFilters, TEPLC, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(TEPL, TEPL, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(SSed, SSed, sep="->")))),
+           which(colnames(bsowf) %in% c(levels(interaction(Ubiq, Ubiq, sep="->")))),
+           which(colnames(bsowf) %in% c(paste0("SOM->", TFilters))),
+           which(colnames(bsowf) %in% c(paste0(TFilters, "->", "EXP"))),
+           which(colnames(bsowf) %in% c(paste0(TEPLC, "->", "EXP"))),
+           which(colnames(bsowf) %in% c(paste0(Ubiq, "->", "EXP"))),
+           which(colnames(bsowf) %in% c(paste0(SSed, "->", "EXP"))),
+           grep("ZOOPLANKT->EXP", colnames(bsowf)),
+           which(colnames(bsowf) %in% c(paste0(Fish, "->", "EXP"))),
+           grep("JELLY->EXP", colnames(bsowf)),
+           grep("SEDBAC->EXP", colnames(bsowf))
+)
+
+bsowfcflows <- data.frame(matrix(data = NA, nrow = 12250))
+
+for(i in 1:length(ii)){
+  bsowfcflows <- cbind(bsowfcflows, rowSums(cbind(bsowf[,ii[[i]]], rep(0, 12250))))
+}
+
+bsowfcflows <- bsowfcflows[,-1]
+colnames(bsowfcflows) <- cflows
+
+#################################
+
+bsowffish <- data.frame(matrix(data = NA, nrow = 12250))
+namevec <- NULL
+
+for(i in Fish){
+  
+  ii <- list(
+  phy   <- which(colnames(bsowffish) %in% c(paste0("PHYTOPLANKT->", i))),
+  zoo   <- which(colnames(bsowf) %in% c(paste0("ZOOPLANKT->", i))),
+  spom  <- which(colnames(bsowf) %in% c(paste0("SPOM->", i))),
+  som   <- which(colnames(bsowf) %in% c(paste0("SOM->", i))),
+  
+  benth <- which(colnames(bsowf) %in% c(levels(interaction(Benthos, i, sep="->")))),
+  tepl  <- which(colnames(bsowf) %in% c(levels(interaction(TEPL, i, sep="->")))),
+  ssed  <- which(colnames(bsowf) %in% c(levels(interaction(SSed, i, sep="->")))), 
+  ubiq  <- which(colnames(bsowf) %in% c(levels(interaction(Ubiq, i, sep="->")))),
+  
+  teplbiv <- which(colnames(bsowf) %in% c(levels(interaction(teplbivalves, i, sep="->")))),
+  teplcru <- which(colnames(bsowf) %in% c(levels(interaction(teplcrustacea, i, sep="->")))),
+  teplpol <- which(colnames(bsowf) %in% c(levels(interaction(teplpolychaetes, i, sep="->")))),
+  teploth <- which(colnames(bsowf) %in% c(levels(interaction(teplothers, i, sep="->")))),  
+  
+  ssedbiv <- which(colnames(bsowf) %in% c(levels(interaction(ssedbivalves, i, sep="->")))),
+  ssedcru <- which(colnames(bsowf) %in% c(levels(interaction(ssedcrustacea, i, sep="->")))),
+  ssedpol <- which(colnames(bsowf) %in% c(levels(interaction(ssedpolychaetes, i, sep="->")))),
+  ssedoth <- which(colnames(bsowf) %in% c(levels(interaction(ssedothers, i, sep="->")))),
+    
+  ubiqbiv <- which(colnames(bsowf) %in% c(levels(interaction(ubiqbivalves, i, sep="->")))),
+  ubiqcru <- which(colnames(bsowf) %in% c(levels(interaction(ubiqcrustacea, i, sep="->")))),
+  ubiqpol <- which(colnames(bsowf) %in% c(levels(interaction(ubiqpolychaetes, i, sep="->")))),
+  ubiqoth <- which(colnames(bsowf) %in% c(levels(interaction(ubiqothers, i, sep="->")))), 
+  
+  pisc  <- which(colnames(bsowf) %in% c(levels(interaction(Fish, i, sep="->"))))
+  )
+  
+  nms <- paste0(i, "_", c("Phyto", "Zoo", "SPOM", "SOM", "Benthos", "TEPL", "SSed", "Ubiq", 
+           "TeplBiv", "TeplCrust", "TeplPoly", "TeplOther",
+           "SSedBiv", "SSedCrust", "SSedPoly", "SSedOther",
+           "UbiqBiv", "UbiqCrust", "UbiqPoly", "UbiqOther",
+           "Fish"))
+
+  for(j in 1:length(ii)){
+    bsowffish <- cbind(bsowffish, rowSums(bsowf[,ii[[j]], drop = FALSE]))
+  }
+  
+  namevec <- c(namevec, nms)
+  
+}
+
+bsowffish <- bsowffish[,-1]
+colnames(bsowffish) <- namevec
+
+
+save(bsowfcflows     , file = paste0("./finalresults/owfcflowsmatrixbootstrap.Rdata"))
+write.csv(bsowfcflows, file = "./finalresults/owfcflowsmatrixbootstrap.csv", row.names = FALSE)
+
+save(bsowffish     , file = paste0("./finalresults/owffishmatrixbootstrap.Rdata"))
+write.csv(bsowffish, file = "./finalresults/owffishmatrixbootstrap.csv", row.names = FALSE)
+
+```
+
+# Indices
+
+-   Calculated on average of MCMC solution and on initial solution
+    (Ldei).
+
+## Calculate on output rows
+
+```{r, options}
+
+# Create Index matrix #
+Indices     <- c("T..", "TST", "Ltot", "Lint", "LD",
+             "C", "Tij", "FCI", "APL", "HR", "DR", "AMI", "ACR", "BC", "Cbar", "TSTC", "TSTS")
+readLIM     <- readLIM.owf
+variranges  <- varrangesowf
+finalmatrix <- Xowf
+LIM         <- LIM.owf
+
+seq <- round(seq(1, nrow(Xowf), length.out = 1000), 0)
+
+# Create a matrix for the indices to be calculated for each iteration
+NetInd <- matrix(NA, nrow = length(seq), ncol = length(Indices)) ##dimnames
+colnames(NetInd) <- Indices
+
+# Matrix for trophic level calculation
+comps <- as.character(LIM$Components$name)
+TrLevels <- matrix(NA, nrow = length(seq), ncol = length(comps))
+colnames(TrLevels) <- comps
+
+TrOI <- matrix(NA, nrow = length(seq), ncol = length(comps))
+colnames(TrOI) <- comps
+
+# Loop
+for (i in 1:length(seq)){
+  
+  # Specify which compartments are external to serve for import and export.
+  # Specify which compartments comprise of dead material.
+  Import <- c("DIC")
+  Export <- c("EXP", "DIC", "BUR")
+  Dead   <- c("SOM", "SPOM")
+  
+  # Get flow matrix 
+  fm  <- getFlowMatrix(originalFM = LIM$Flowmatrix, 
+                       flows = readLIM$flows, 
+                       answers = finalmatrix[i,])
+  
+  # Remove rows/cols that sum to zero,
+  # and remove Imports from colums and Exports from rows.
+  RemCol <- unique(which(colSums(fm)==0), 
+                   which(colnames(fm)%in% Import, arr.ind = TRUE))
+  RemRow <- unique(which(rowSums(fm)==0), 
+                   which(rownames(fm)%in% Export, arr.ind = TRUE))
+  if(length(RemRow) != 0) {fm <- fm[-RemRow,] }
+  if(length(RemCol) != 0) {fm <- fm[,-RemCol] }
+  
+  # Redefine Import and Export if they were eliminated from fm
+  Import <- Import[which(Import%in%rownames(fm))]      
+  Export <- Export[which(Export%in%colnames(fm))]      
+
+  # Calculate indices
+  NetInd[i, "T.."]  <- GenInd (Flow=fm, Import=Import, Export=Export)$T..
+  NetInd[i, "TST"]  <- GenInd (Flow=fm, Import=Import, Export=Export)$TST
+  NetInd[i, "Lint"] <- GenInd (Flow=fm, Import=Import, Export=Export)$Lint
+  NetInd[i, "Ltot"] <- GenInd (Flow=fm, Import=Import, Export=Export)$Ltot
+  NetInd[i, "LD"]   <- GenInd (Flow=fm, Import=Import, Export=Export)$LD
+  NetInd[i, "C"]    <- GenInd (Flow=fm, Import=Import, Export=Export)$C
+  NetInd[i, "Tij"]  <- GenInd (Flow=fm, Import=Import, Export=Export)$Tij
+  NetInd[i, "FCI"]  <- PathInd(Flow=fm, Import=Import, Export=Export)$FCIb
+  NetInd[i, "APL"]  <- PathInd(Flow=fm, Import=Import, Export=Export)$APL
+  NetInd[i, "HR"]   <- UncInd (Flow=fm, Import=Import, Export=Export)$HR
+  NetInd[i, "DR"]   <- UncInd (Flow=fm, Import=Import, Export=Export)$DR
+  NetInd[i, "AMI"]  <- UncInd (Flow=fm, Import=Import, Export=Export)$AMI
+  NetInd[i, "ACR"]  <- AscInd (Flow=fm, Import=Import, Export=Export) ["Total","ACratio"]
+  NetInd[i, "BC"]   <- EnvInd (Flow=fm, Import=Import, Export=Export)$BC
+  NetInd[i, "Cbar"]  <- GenInd (Flow=fm, Import=Import, Export=Export)$Cbar
+  NetInd[i, "TSTC"]  <- PathInd(Flow=fm, Import=Import, Export=Export)$TSTC
+  NetInd[i, "TSTS"]  <- PathInd(Flow=fm, Import=Import, Export=Export)$TSTS
+    
+  a <- getTrophInd(Flow=fm, Import=Import, Export=Export, Dead=Dead)$TL
+  if(length(a) != length(comps)) {
+    index <- index[!is.na(index)]
+    for (j in 1:length(index)) {
+      val <- c(a, NA)
+      id  <- c(seq_along(a), index[j]-0.5)
+      a <- val[order(id)]
+    }
+  }
+  TrLevels[i,] <- a
+  
+  b <- getTrophInd(Flow=fm, Import=Import, Export=Export, Dead=Dead)$OI
+  if(length(b) != length(comps)) {
+    index <- index[!is.na(index)]
+    for (j in 1:length(index)) {
+      val <- c(b, NA)
+      id  <- c(seq_along(b), index[j]-0.5)
+      b <- val[order(id)]
+    }
+  }
+  TrOI[i,] <- b
+
+} 
+
+netindowf <- NetInd
+
+rm(NetInd)
+rm(TrLevels)
+
+save(file = "./finalresults/NETINDowf.rda", netindowf)
+
+```
+
+## Analysis of index results
+
+```{r}
+
+load(file = "./finalresults/NETINDowf.rda")
+
+# Save mean±std for use in text.
+meansNI_2 <- colMeans(netindowf)
+stdevNI_2 <- sqrt(diag(var(netindowf)))
+NIowf_2   <- data.frame(mean = meansNI_2, stdev = stdevNI_2)
+
+save(file = "./finalresults/owfindtable.rda", NIowf_2)
+
+```
+
+# Calculate variables
+
+```{r}
+
+#LIM.coarse$VarA%*%mcmccoarse[[1]]$X[1,]
+
+varA <- NULL
+
+for(i in (1:nrow(Xowf))){
+varnew <- LIM.owf$VarA%*%Xowf[i,]
+varA <- cbind(varA, varnew)
+}
+
+varsowf <- varA
+rm(varA)
+
+row.names(varsowf) <- LIM.owf$Variables
+
+meanvarsowf <- apply(varsowf, 1, mean, na.rm = TRUE)
+sdvarsowf   <- apply(varsowf, 1, sd, na.rm = TRUE)
+minvarsowf  <- apply(varsowf, 1, min, na.rm = TRUE)
+maxvarsowf  <- apply(varsowf, 1, max, na.rm = TRUE)
+
+varsowf <- data.frame("mean" = meanvarsowf, "sd" = sdvarsowf, "min" = minvarsowf, "max" = maxvarsowf)
+
+save(file = "./finalresults/varsowf.rda", varsowf)
+write.csv(varsowf, file = "./finalresults/varsowf.csv") 
+
+```

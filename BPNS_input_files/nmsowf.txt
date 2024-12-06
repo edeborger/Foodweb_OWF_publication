@@ -1,0 +1,68 @@
+Callionymiformes
+Carangiformes
+Clupeiformes
+Gadiformes
+Gobiiformes
+Mulliformes
+Cottoidei
+Percoidei
+Scorpaenoidei
+Uranoscopoidei
+Pleuronectiformes
+Scombriformes
+Zeiformes
+Jellyfish
+Balanoidea T
+Carnivorous Polychaetes M T
+Carnivorous Polychaetes PC T
+Carnivorous Polychaete T
+Suspensionfeeding Bivalves T
+Suspensionfeeder Gastropods T
+Grazing Gastropods T
+Ophiura T
+Anthozoa T
+Sponges T
+Nudibranch T
+Suspension-depositfeeder Amphipods TR
+Detritivore Crabs TR
+Suspension-depositfeeder Crabs TR
+Carnivorous Crabs TR
+Lobster TR
+Flatworms TR
+Cumaceans RS
+Detritivore Crabs RS
+Suspension-depositfeeder Polychaetes RS
+Scavenger carnivorous Gastropods RS
+Detritivore-Amphipods RS
+Detritivore-planktivore Amphipods S
+Suspension-detritivore Shrimp S
+Carnivorous Shrimp S
+Small Suspension-depositfeeding Crabs S
+Pagurids S
+Detritivore Polychaetes S
+Carnivorous Polychaetes P S
+Carnivorous Polychaetes PC S
+Suspension-depositfeeder Polychaetes S
+Suspensionfeeding Worms S
+Sepiola Atlantica S
+Suspension-depositfeeder Bivalves S
+Herbivorous Suspension-depositfeeding Bivalves S
+Depositfeeder Bivalves S
+Browsing Gastropods S
+Boring Gastropods S
+Echinocardium S
+Ophiurids S
+Isopoda U
+Detritivore Polychaetes U
+Carnivorous Polychaetes C U
+Nephtyds U
+Asterias Rubens U
+Zooplankton
+Phytoplankton
+Sediment OM
+Suspended OM
+Sed. Bacteria
+Wat. Bacteria
+DIC
+Export
+Burial

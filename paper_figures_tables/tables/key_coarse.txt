@@ -1,0 +1,42 @@
+Code Names Biomass (mmol C m-2)
+1 CALLIO Callionymiformes 0.5667
+2 CARANG Carangiformes 0.0586
+3 GADIFO Gadiformes 0.2192
+4 GOBIFO Gobiiformes 0.143
+5 MULLIF Mulliformes 0.0437
+6 COTTOI Cottoidei 0.0115
+7 PERCOI Percoidei 0.012
+8 SCORPA Scorpaenidei 0.0845
+9 AMMODY Ammodytidae 0.0657
+10 PLEURO Pleuronectiformes 3.0983
+11 JELLY Jellyfish 106.32
+12 CUMACE Cumacea 0.272
+13 CALLIA Callianassidae 0.025
+14 ISOPOD Isopods 0.291
+15 DETAMP Detritivore Amphipods 1.937
+16 DPAMP Detritivore-planktivore Amphipods 0.404
+17 DETSHR Detritivore Shrimp 3.453
+18 SUDECR Small Suspension-depositfeeding Crabs 92.938
+19 PAGURI Pagurids 4.221
+20 CARNCR Carnivorous Crabs 8.052
+21 ASTRUB Asterias Rubens 276.7
+22 OPHIUR Ophiurids 0.494
+23 ECHCOR Echinocardium Cordatum 1453.145
+24 DETPOL Detritivore Polychates 18.643
+25 NEPHTY Nephtyds 21.408
+26 CARPOLP Carnivorous Polychaetes P 0.051
+27 CARPOLC Carnivorous Polychaetes C 0.019
+28 CARPOLPC Carnivorous Polychaete PC 2.1
+29 SUSWOR Suspensionfeeding Worms 2.81
+30 SUSBIV Suspensionfeeder Bivalve 0.097
+31 HSUDEBI Herbivorous-Suspensiondepositfeeder Bivalve 2.567
+32 SUDEBI Suspension-depositfeeder Bivalve 45.591
+33 BROGAS Browsing Gastropods 0.277
+34 SUSGAS Suspensionfeeder Gastropod 0.019
+35 SEPATL Sepiola Atlantica 1.093
+36 ZOOPLANKT Zooplankton NA
+37 PHYTOPLANKT Phytoplankton NA
+38 SOM Sediment OM 7556
+39 SPOM Suspended OM 1057.347
+40 SEDBAC Sed. Bacteria 395.25
+41 WATBAC Wat. Bacteria 25

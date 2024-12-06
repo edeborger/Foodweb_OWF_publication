@@ -1,0 +1,756 @@
+---
+title: "foodweb_780"
+author: "Emil De Borger"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+editor_options: 
+  markdown: 
+    wrap: 72
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    toc_float: yes
+---
+
+# Description
+
+-   Runs the foodweb as specified in `/final_versions/fine.input`.
+
+-   Links between groups based on literature research.
+
+-   Ldei: Solves a linear inverse model using least distance programming
+    (i.e. minimizes sum of squared unknowns). $\min(∑ {Cost_i*x_i}^2)$
+    Subject to equalities and inequalities: $Ax = B$ $Gx>=H$
+
+-   ldei: Solves *underdetermined* inverse problem $\min(∑ {x_i}^2)$
+    subject to equalities and inequalities: $Ax = B$ $Gx>=H$
+    Underdetermined: number of independent equations \< number of
+    unknowns.
+
+```{r setup, include=FALSE}
+
+# Packages 
+require(LIM)
+require(splus2R)
+require(NetIndices)
+require(MASS)
+require(parallel)
+
+# Files
+File.fine <- "./final_versions/fine.input"
+
+```
+
+
+# Reading LIM and run ranges
+
+### Read LIM
+
+```{r}
+
+readLIM.fine  <- LIM::Read(file = File.fine, verbose = TRUE, checkLinear = TRUE)
+
+```
+
+# Solving LIM
+
+### Single solution and ranges
+
+```{r}
+
+# Ranges and solution
+readLIM.fine  <- LIM::Read(file = File.fine, verbose = TRUE, checkLinear = TRUE)
+LIM.fine      <- Setup(readLIM.fine)
+Solldeifine   <- Ldei(LIM.fine, verbose = T)
+Rangesfine    <- Xranges(LIM.fine, central = T, ispos = T)
+varrangesfine <- Varranges(LIM.fine)
+
+# Check validity of solution
+any((LIM.fine$A %*% Solldeifine$X - LIM.fine$B)>1e-8)
+any((LIM.fine$G %*% Solldeifine$X - LIM.fine$H)<(-1E-8))
+
+
+save(readLIM.fine , file = "./finalresults/readlimfine.rda")
+save(LIM.fine     , file = "./finalresults/limfine.rda")
+save(Solldeifine  , file = "./finalresults/solldeifine.rda")
+save(Rangesfine   , file = "./finalresults/rangesfine.rda")
+save(varrangesfine, file = "./finalresults/varrangesfine.rda")
+
+```
+
+### Cluster computing
+
+- Evaluated online on NIOZ BIOINFORMATICS server
+
+### Load .rda elements
+
+```{r label, options}
+
+load(file = "./780_export/MCMCfine.rda")
+XFine <- mcExtract(mcmcfine)
+
+```
+
+# Analysis of fluxes
+
+### Mean-sd of flows.
+
+```{r}
+
+finalmatrix <- XFine
+LIM         <- LIM.fine
+readLIM     <- readLIM.fine
+variranges  <- varrangesfine
+
+# Mean + SD of solutions.
+### Get mean±std
+meanvalues  <- cbind(LIM$Unknowns, colMeans(finalmatrix))
+standarddev <- cbind(LIM$Unknowns, sqrt(diag(var(finalmatrix))))
+
+### Add to dataframe
+minimum <- apply(finalmatrix, 2, min, na.rm = TRUE)
+maximum <- apply(finalmatrix, 2, max, na.rm = TRUE)
+
+flow       <- meanvalues[,1]
+mean       <- as.numeric(meanvalues[,2])
+std        <- as.numeric(standarddev[,2])
+Flows.Fine <- data.frame(flow, mean, std, minimum, maximum)
+
+### Save as excel sheet.
+write.csv(Flows.Fine, paste("./finalresults/Flows_fine_iso.csv"))
+### The Flows data frame is saved as .Rdata file
+save(Flows.Fine, file = paste0("./finalresults/Flows_fine_iso.Rdata"))
+
+### Get Flowmatrix with Bayesian solution.
+FM.Fine <- getFlowMatrix(originalFM = LIM$Flowmatrix, 
+                        flows      = readLIM$flows , 
+                        answers    = Flows.780[,"mean"])
+
+
+# Mean + SD of variable estimates
+Vals      <- data.frame(variranges)
+Vals$mean <- numeric(LIM$NVariables)
+Vals$std  <- numeric(LIM$NVariables)
+  
+vareq      <- readLIM$vars # matrix which defines the variable equations
+parvec     <- readLIM$pars$val # vector with parameter values
+flowvec    <- as.numeric(meanvalues[,2]) # vector with mean flow values
+flowstdvec <- as.numeric(standarddev[,2]) # vector with flow standard deviations
+
+for (j in 1:LIM$NVariables) {
+  # refresh vector with mean and std values
+  varvec <- Vals$mean
+  varstdvec <- Vals$std
+  
+  # Get subset with the same equation nr.
+  subset <- vareq[vareq$nr == j,] 
+    
+  # Take parameter, variable or flow nr from subset to use as index. 
+  # Use index to find the corresponding values.
+  # Multiply the values by 'val' which is the coefficient (like 1 or -1) and sum them.
+  sum <- 
+    sum(parvec[subset$par1]*subset$val, na.rm = TRUE) +
+    sum(parvec[subset$par2]*subset$val, na.rm = TRUE) +
+    sum(parvec[subset$par3]*subset$val, na.rm = TRUE) +
+    sum(parvec[subset$par4]*subset$val, na.rm = TRUE) +
+    sum(varvec[subset$var]*subset$val , na.rm = TRUE) +
+    sum(flowvec[subset$flow]*subset$val, na.rm = TRUE)  
+  
+  # Use index to find corresponding standard deviations.
+  # Sum squared standard deviations and take the square root.
+  stddev <- 
+    sqrt(
+      sum(flowstdvec[subset$flow]^2, na.rm = TRUE) +
+        sum(varstdvec[subset$var]^2, na.rm = TRUE)
+    )
+  
+  # Add values to data frame.
+  Vals$mean[j] = sum 
+  Vals$std[j]  = stddev
+}
+  
+# The Vals data frame is saved as .Rdata file.
+Vals_Fine <- Vals
+save(Vals_Fine, file = paste0("./finalresults/vals_fine_iso.Rdata"))
+
+# Clean up memory
+rm(finalmatrix, readLIM  , LIM        ,
+   meanvalues , mean     , standarddev, 
+   std        , stddev   , flow       , 
+   maximum    , minimum  , sum        ,
+   parvec     , varstdvec, flowstdvec , 
+   vareq      , flowvec  , Vals       ,
+   variranges , subset)
+
+```
+
+### Summary of fluxes
+
+```{r}
+
+Fish        <- c(LIM.fine$Components$name[1:10])  #String with fish.
+Benthos     <- c(LIM.fine$Components$name[12:40]) #String with benthos.
+bivalves    <- c(LIM.fine$Components$name[19:22])  
+crustacea   <- c(LIM.fine$Components$name[12:18]) 
+polychaetes <- c(LIM.fine$Components$name[28:34]) 
+others      <- c(LIM.fine$Components$name[c(23:27, 35:40)]) 
+
+phytobenth <- which(Flows.Fine$flow %in% c(paste0("PHYTOPLANKT->", Benthos)))
+zoobenth   <- which(Flows.Fine$flow %in% c(paste0("ZOOPLANKT->", Benthos)))
+spombenth  <- which(Flows.Fine$flow %in% c(paste0("SPOM->", Benthos)))
+sombenth   <- which(Flows.Fine$flow %in% c(paste0("SOM->", Benthos)))
+benthbenth <- which(Flows.Fine$flow %in% c(levels(interaction(Benthos, Benthos, sep="->"))))
+
+phytobiv <- which(Flows.Fine$flow %in% c(paste0("PHYTOPLANKT->", bivalves)))
+zoobiv   <- which(Flows.Fine$flow %in% c(paste0("ZOOPLANKT->", bivalves)))
+spombiv  <- which(Flows.Fine$flow %in% c(paste0("SPOM->", bivalves)))
+sombiv   <- which(Flows.Fine$flow %in% c(paste0("SOM->", bivalves)))
+benthbiv <- which(Flows.Fine$flow %in% c(levels(interaction(Benthos, bivalves, sep="->"))))
+
+phytocrust <- which(Flows.Fine$flow %in% c(paste0("PHYTOPLANKT->", crustacea)))
+zoocrust   <- which(Flows.Fine$flow %in% c(paste0("ZOOPLANKT->", crustacea)))
+spomcrust  <- which(Flows.Fine$flow %in% c(paste0("SPOM->", crustacea)))
+somcrust   <- which(Flows.Fine$flow %in% c(paste0("SOM->", crustacea)))
+benthcrust <- which(Flows.Fine$flow %in% c(levels(interaction(Benthos, crustacea, sep="->"))))
+
+phytopoly <- which(Flows.Fine$flow %in% c(paste0("PHYTOPLANKT->", polychaetes)))
+zoopoly   <- which(Flows.Fine$flow %in% c(paste0("ZOOPLANKT->", polychaetes)))
+spompoly  <- which(Flows.Fine$flow %in% c(paste0("SPOM->", polychaetes)))
+sompoly   <- which(Flows.Fine$flow %in% c(paste0("SOM->", polychaetes)))
+benthpoly <- which(Flows.Fine$flow %in% c(levels(interaction(Benthos, polychaetes, sep="->"))))
+
+phytooth <- which(Flows.Fine$flow %in% c(paste0("PHYTOPLANKT->", others)))
+zoooth   <- which(Flows.Fine$flow %in% c(paste0("ZOOPLANKT->", others)))
+spomoth  <- which(Flows.Fine$flow %in% c(paste0("SPOM->", others)))
+somoth   <- which(Flows.Fine$flow %in% c(paste0("SOM->", others)))
+benthoth <- which(Flows.Fine$flow %in% c(levels(interaction(Benthos, others, sep="->"))))
+
+phytofish  <- which(Flows.Fine$flow %in% c(paste0("PHYTOPLANKT->", Fish))) 
+zoofish    <- which(Flows.Fine$flow %in% c(paste0("ZOOPLANKT->", Fish))) 
+spomfish   <- which(Flows.Fine$flow %in% c(paste0("SPOM->", Fish))) 
+somfish    <- which(Flows.Fine$flow %in% c(paste0("SOM->", Fish))) 
+benthofish <- which(Flows.Fine$flow %in% c(paste0("Benthos->", Fish))) 
+bivfish    <- which(Flows.Fine$flow %in% c(levels(interaction(bivalves, Fish, sep="->")))) 
+crusfish   <- which(Flows.Fine$flow %in% c(levels(interaction(crustacea, Fish, sep="->")))) 
+polyfish   <- which(Flows.Fine$flow %in% c(levels(interaction(polychaetes, Fish, sep="->")))) 
+othfish    <- which(Flows.Fine$flow %in% c(levels(interaction(others, Fish, sep="->"))))
+
+cflows    <- c("OM deposition"         ,
+               "Fish respiration"      ,
+               "Jellyfish respiration" , 
+               "Bacterial respiration" ,
+               "Macrofauna respiration",
+               "Sediment respiration"  ,
+               "Water respiration"     , #no phytoplankton
+               "Total respiration"     , #no phytoplankton
+               "Burial"                ,
+               "Total export"          ,
+               "phytoplankton uptake macrofauna",
+               "zooplankton uptake macrofauna"  ,
+               "SOM uptake macrofauna"          ,
+               "SPOM uptake macrofauna"         ,
+               "Total uptake macrofauna"        ,
+               "SOM uptake bacteria"            ,
+               "SPOM uptake bacteria"           , 
+               "Uptake water bivalves"          ,
+               "Uptake water crustaceans"       ,
+               "Uptake water polychaetes"       ,
+               "Uptake water others"            ,
+               "Uptake SOM bivalves"            ,
+               "Uptake SOM crustaceans"         ,
+               "Uptake SOM polychaetes"         ,
+               "Uptake SOM others"              ,
+               "Total carbon outflow"           ,
+               "Total carbon inflow"            ,
+               "Phyto->Zoo",
+               "Zoo->SPOM",
+               "Phyto->SPOM",
+               "Zoo->Fish",
+               "SPOM->Fish",
+               "Fish->SPOM",
+               "WatBac->DIC",
+               "SPOM->WatBac",
+               "WatBac->SPOM",
+               "Zoo->Jelly",
+               "Jelly->SPOM",
+               "SOM->SedBac",
+               "SedBac->SOM",
+               "SOM->Burial",
+               "SedBac->Burial",
+               "Benthos->Fish",
+               "Zoo->DIC",
+               "Fish->DIC",
+               "Jelly->DIC",
+               "SedBac->DIC",
+               "Benthos->DIC",
+               "DIC->Phyto",
+               "Benthos->SOM",
+               "Phyto->Benthos",
+               "Zoo->Benthos",
+               "SPOM->Benthos",
+               "SOM->Benthos",
+               "Benthos->Benthos",
+               "Phyto->Bivalves",
+               "Zoo->Bivalves",
+               "SPOM->Bivalves",
+               "SOM->Bivalves",
+               "Benthos->Bivalves",
+               "Phyto->Crustaceans",
+               "Zoo->Crustaceans",
+               "SPOM->Crustaceans",
+               "SOM->Crustaceans",
+               "Benthos->Crustaceans",
+               "Phyto->Polychaetes",
+               "Zoo->Polychaetes",
+               "SPOM->Polychaetes",
+               "SOM->Polychaetes",
+               "Benthos->Polychaetes",
+               "Phyto->Others",
+               "Zoo->Others",
+               "SPOM->Others",
+               "SOM->Others",
+               "Benthos->Others",
+               "Phyto->Export",
+               "Zoo->Export",
+               "Fish->Export",
+               "Jelly->Export",
+               "Benthos->Export"
+)
+
+restabfine <- data.frame(name = cflows, mean = NA, std = NA)
+
+ii <- list(grep("SPOM->SOM", Flows.Fine$flow), # OMdepo OK
+           c(449:458) ,         # Fishresp OK
+           c(459)     ,         # Jelresp OK
+           c(489:490) ,         # Bactresp OK
+           c(460:488) ,         # Macresp OK
+           c(460:489) ,         # Sedresp OK
+           c(449:459, 490:491), # Watresp OK No phytoplankton
+           c(449:491)     ,     # Totresp OK No phytoplankton
+           c(536)         ,     # totbur OK
+           c(492:535)     ,     # totexp OK
+           grep("PHYTOPLANKT->", Flows.Fine$flow)[c(1:6)]  , # Phyto upt. macrofauna
+           grep("ZOOPLANKT->", Flows.Fine$flow)[c(12:22)]  , # Zoo upt. macrofauna
+           grep("SOM->", Flows.Fine$flow)[c(3:26)]         , # SOM upt. macrofauna
+           grep("SPOM->", Flows.Fine$flow)[c(3:16)]        , # SPOM upt. macrofauna
+           c(grep("PHYTOPLANKT->", Flows.Fine$flow)[c(1:6)], # Total upt. macrofauna
+             grep("ZOOPLANKT->", Flows.Fine$flow)[c(12:22)], 
+             grep("SOM->", Flows.Fine$flow)[c(3:26)]       ,
+             grep("SPOM->", Flows.Fine$flow)[c(3:16)])     ,
+           grep("SOM->SEDBAC" , Flows.Fine$flow)                  , # SOM uptake bacteria
+           grep("SPOM->WATBAC", Flows.Fine$flow)                  , # SPOM uptake bacteria
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", Flows.Fine$flow)[c(21:28)]       , # Water uptake bivalves
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", Flows.Fine$flow)[c(14:20)]       , # Water uptake crusties
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", Flows.Fine$flow)[c(35:40)]       , # Water uptake polychaetes
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", Flows.Fine$flow)[c(29:34, 41:44)], # Water uptake others
+           grep("SOM->", Flows.Fine$flow)[c(10:12)]        , # Uptake SOM bivalves
+           grep("SOM->", Flows.Fine$flow)[c(3:9)]          , # Uptake SOM crustaceans
+           grep("SOM->", Flows.Fine$flow)[c(16:21)]       , # Uptake SOM polychaetes
+           grep("SOM->", Flows.Fine$flow)[c(13:15, 22:26)], # Uptake SOM others
+           c(449:536)                                    , # Tot C outflow burial + export + respiration (??)
+           grep("DIC->PHYTOPLANKT", Flows.Fine$flow)      , # Tot C inflow
+           grep("PHYTOPLANKT->ZOOPLANKT", Flows.Fine$flow), # Phyto->Zoo
+           grep("ZOOPLANKT->SPOM", Flows.Fine$flow)       , # Zoo->SPOM
+           grep("PHYTOPLANKT->SPOM", Flows.Fine$flow)     , # Phyto->Fish
+           grep("ZOOPLANKT->", Flows.Fine$flow)[c(1:10)]  , # zoo->Fish
+           grep("SPOM->", Flows.Fine$flow)[c(1)]          , # SPOM->Fish
+           grep("->SPOM", Flows.Fine$flow)[c(2:11)]       , # Fish->SPOM
+           grep("WATBAC->DIC", Flows.Fine$flow)           , # watbac->DIC
+           grep("SPOM->WATBAC", Flows.Fine$flow)          , # SPOM->WATBAC
+           grep("WATBAC->SPOM", Flows.Fine$flow)          , # watbac -> SPOM
+           grep("ZOOPLANKT->JELLY", Flows.Fine$flow)      , # zooplankt->Jelly
+           grep("JELLY->SPOM", Flows.Fine$flow)           , # jelly->SPOM
+           grep("SOM->SEDBAC", Flows.Fine$flow)           , # SOM->Sedbac
+           grep("SEDBAC->SOM", Flows.Fine$flow)           , # sedbac -> SOM
+           grep("SOM->BUR", Flows.Fine$flow)              , # SOM->Burial
+           grep("SEDBAC->BUR", Flows.Fine$flow)           , # Sedbac -> Burial
+           c(2:21, 25:31, 42:58, 60:81, 86:105, 108:120, 130:135, 142:145, 149:171, 173, 175:178), # Benthos -> Fish
+           grep("ZOOPLANKT->DIC", Flows.Fine$flow)        , # Zoo->DIC
+           grep("->DIC", Flows.Fine$flow)[1:10]            , # Fish->DIC
+           grep("->DIC", Flows.Fine$flow)[11]             , # jelly->DIC
+           grep("SEDBAC->DIC", Flows.Fine$flow)           , # Sedbac->DIC
+           grep("->DIC", Flows.Fine$flow)[12:40]          , # Benthos->DIC
+           grep("DIC->PHYTOPLANKT", Flows.Fine$flow)      , # DIC->Phyto
+           grep("->SOM", Flows.Fine$flow)[3:31],             # Benthos->SOM
+           phytobenth                         ,
+           zoobenth                           ,
+           spombenth                          ,
+           sombenth                           ,
+           benthbenth                         ,
+           phytobiv                           ,
+           zoobiv                             ,
+           spombiv                            ,
+           sombiv                             ,
+           benthbiv                           ,
+           phytocrust                         ,
+           zoocrust                           ,
+           spomcrust                          ,
+           somcrust                           ,
+           benthcrust                         ,
+           phytopoly                          ,
+           zoopoly                            ,
+           spompoly                           ,
+           sompoly                            ,
+           benthpoly                          ,
+           phytooth                           ,
+           zoooth                             ,
+           spomoth                            ,
+           somoth                             ,
+           benthoth                           ,
+           c(534)                             ,
+           c(535)                             ,
+           c(492:501)                         ,
+           c(502)                             ,
+           c(503:531)
+           )
+
+for(i in 1:length(ii)){
+  restabfine[i,"mean"] <- sum(Flows.Fine$mean[ii[[i]]])
+  restabfine[i,"std"]  <- stdfromstd(Flows.Fine$std[ii[[i]]])
+  restabfine[i,"min"]  <- sum(Flows.Fine$minimum[ii[[i]]])
+  restabfine[i,"max"]  <- sum(Flows.Fine$maximum[ii[[i]]])
+}
+
+knitr::kable(restabfine)
+
+save(restabfine, file = paste0("./finalresults/restab_fine_iso.Rdata"))
+write.csv(restabfine, file = "./finalresults/restabfine.csv", row.names = FALSE)
+
+#### Fish
+
+Fishfine <- NULL
+
+for(i in Fish){
+  
+  ii <- list(
+  phy   <- which(Flows.Fine$flow %in% c(paste0("PHYTOPLANKT->", i))),
+  zoo   <- which(Flows.Fine$flow %in% c(paste0("ZOOPLANKT->", i))),
+  spom  <- which(Flows.Fine$flow %in% c(paste0("SPOM->", i))),
+  som   <- which(Flows.Fine$flow %in% c(paste0("SOM->", i))),
+  benth <- which(Flows.Fine$flow %in% c(levels(interaction(Benthos, i, sep="->")))),
+  biv   <- which(Flows.Fine$flow %in% c(levels(interaction(bivalves, i, sep="->")))),
+  cru   <- which(Flows.Fine$flow %in% c(levels(interaction(crustacea, i, sep="->")))),
+  pol   <- which(Flows.Fine$flow %in% c(levels(interaction(polychaetes, i, sep="->")))),
+  oth   <- which(Flows.Fine$flow %in% c(levels(interaction(others, i, sep="->")))), 
+  pisc  <- which(Flows.Fine$flow %in% c(levels(interaction(Fish, i, sep="->"))))
+  )
+  
+  nms <- c("Phyto", "Zoo", "SPOM", "SOM", "Benthos", "Biv", "Crust", "Poly", "Other", "Fish")
+  new <- data.frame(name = nms, mean = NA, std = NA, min = NA, max = NA)
+
+  for(j in 1:length(ii)){
+  new[j, "Fish"] <- i
+  new[j,"mean"] <- sum(Flows.Fine$mean[ii[[j]]])
+  new[j,"std"]  <- stdfromstd(Flows.Fine$std[ii[[j]]])
+  new[j,"min"]  <- sum(Flows.Fine$minimum[ii[[j]]])
+  new[j,"max"]  <- sum(Flows.Fine$maximum[ii[[j]]])
+  }
+  
+  Fishfine <- rbind(Fishfine, new)
+  
+}
+
+save(Fishfine     , file = paste0("./finalresults/fish_fine_iso.Rdata"))
+write.csv(Fishfine, file = "./finalresults/fishfine.csv", row.names = FALSE)
+
+```
+
+# Matrix for bootstrapping comparison
+
+```{r}
+
+bsfine <- XFine
+colnames(bsfine) <- Flows.Fine$flow
+
+ii <- list(grep("SPOM->SOM", colnames(bsfine)), # OMdepo OK
+           c(449:458) ,         # Fishresp OK
+           c(459)     ,         # Jelresp OK
+           c(489:490) ,         # Bactresp OK
+           c(460:488) ,         # Macresp OK
+           c(460:489) ,         # Sedresp OK
+           c(449:459, 490:491), # Watresp OK No phytoplankton
+           c(449:491)     ,     # Totresp OK No phytoplankton
+           c(536)         ,     # totbur OK
+           c(492:535)     ,     # totexp OK
+           grep("PHYTOPLANKT->", colnames(bsfine))[c(1:6)]  , # Phyto upt. macrofauna
+           grep("ZOOPLANKT->", colnames(bsfine))[c(12:22)]  , # Zoo upt. macrofauna
+           grep("SOM->", colnames(bsfine))[c(3:26)]         , # SOM upt. macrofauna
+           grep("SPOM->", colnames(bsfine))[c(3:16)]        , # SPOM upt. macrofauna
+           c(grep("PHYTOPLANKT->", colnames(bsfine))[c(1:6)], # Total upt. macrofauna
+             grep("ZOOPLANKT->", colnames(bsfine))[c(12:22)], 
+             grep("SOM->", colnames(bsfine))[c(3:26)]       ,
+             grep("SPOM->", colnames(bsfine))[c(3:16)])     ,
+           grep("SOM->SEDBAC" , colnames(bsfine))                  , # SOM uptake bacteria
+           grep("SPOM->WATBAC", colnames(bsfine))                  , # SPOM uptake bacteria
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", colnames(bsfine))[c(21:28)]       , # Water uptake bivalves
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", colnames(bsfine))[c(14:20)]       , # Water uptake crusties
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", colnames(bsfine))[c(35:40)]       , # Water uptake polychaetes
+           grep("PHYTOPLANKT->|ZOOPLANKT->|SPOM->", colnames(bsfine))[c(29:34, 41:44)], # Water uptake others
+           grep("SOM->", colnames(bsfine))[c(10:12)]        , # Uptake SOM bivalves
+           grep("SOM->", colnames(bsfine))[c(3:9)]          , # Uptake SOM crustaceans
+           grep("SOM->", colnames(bsfine))[c(16:21)]       , # Uptake SOM polychaetes
+           grep("SOM->", colnames(bsfine))[c(13:15, 22:26)], # Uptake SOM others
+           c(449:536)                                    , # Tot C outflow burial + export + respiration (??)
+           grep("DIC->PHYTOPLANKT", colnames(bsfine))      , # Tot C inflow
+           grep("PHYTOPLANKT->ZOOPLANKT", colnames(bsfine)), # Phyto->Zoo
+           grep("ZOOPLANKT->SPOM", colnames(bsfine))       , # Zoo->SPOM
+           grep("PHYTOPLANKT->SPOM", colnames(bsfine))     , # Phyto->Fish
+           grep("ZOOPLANKT->", colnames(bsfine))[c(1:10)]  , # zoo->Fish
+           grep("SPOM->", colnames(bsfine))[c(1)]          , # SPOM->Fish
+           grep("->SPOM", colnames(bsfine))[c(2:11)]       , # Fish->SPOM
+           grep("WATBAC->DIC", colnames(bsfine))           , # watbac->DIC
+           grep("SPOM->WATBAC", colnames(bsfine))          , # SPOM->WATBAC
+           grep("WATBAC->SPOM", colnames(bsfine))          , # watbac -> SPOM
+           grep("ZOOPLANKT->JELLY", colnames(bsfine))      , # zooplankt->Jelly
+           grep("JELLY->SPOM", colnames(bsfine))           , # jelly->SPOM
+           grep("SOM->SEDBAC", colnames(bsfine))           , # SOM->Sedbac
+           grep("SEDBAC->SOM", colnames(bsfine))           , # sedbac -> SOM
+           grep("SOM->BUR", colnames(bsfine))              , # SOM->Burial
+           grep("SEDBAC->BUR", colnames(bsfine))           , # Sedbac -> Burial
+           c(2:21, 25:31, 42:58, 60:81, 86:105, 108:120, 130:135, 142:145, 149:171, 173, 175:178), # Benthos -> Fish
+           grep("ZOOPLANKT->DIC", colnames(bsfine))        , # Zoo->DIC
+           grep("->DIC", colnames(bsfine))[1:10]            , # Fish->DIC
+           grep("->DIC", colnames(bsfine))[11]             , # jelly->DIC
+           grep("SEDBAC->DIC", colnames(bsfine))           , # Sedbac->DIC
+           grep("->DIC", colnames(bsfine))[12:40]          , # Benthos->DIC
+           grep("DIC->PHYTOPLANKT", colnames(bsfine))      , # DIC->Phyto
+           grep("->SOM", colnames(bsfine))[3:31],             # Benthos->SOM
+           phytobenth                         ,
+           zoobenth                           ,
+           spombenth                          ,
+           sombenth                           ,
+           benthbenth                         ,
+           phytobiv                           ,
+           zoobiv                             ,
+           spombiv                            ,
+           sombiv                             ,
+           benthbiv                           ,
+           phytocrust                         ,
+           zoocrust                           ,
+           spomcrust                          ,
+           somcrust                           ,
+           benthcrust                         ,
+           phytopoly                          ,
+           zoopoly                            ,
+           spompoly                           ,
+           sompoly                            ,
+           benthpoly                          ,
+           phytooth                           ,
+           zoooth                             ,
+           spomoth                            ,
+           somoth                             ,
+           benthoth                           ,
+           c(534)                             ,
+           c(535)                             ,
+           c(492:501)                         ,
+           c(502)                             ,
+           c(503:531)
+)
+
+bsfinecflows <- data.frame(matrix(data = NA, nrow = 9950))
+
+for(i in 1:length(ii)){
+  bsfinecflows <- cbind(bsfinecflows, rowSums(cbind(bsfine[,ii[[i]]], rep(0, 9950))))
+}
+
+bsfinecflows <- bsfinecflows[,-1]
+colnames(bsfinecflows) <- cflows
+
+#################################
+
+bsfinefish <- data.frame(matrix(data = NA, nrow = 9950))
+namevec <- NULL
+
+for(i in Fish){
+  
+  ii <- list(
+  phy   <- which(colnames(bsfine) %in% c(paste0("PHYTOPLANKT->", i))),
+  zoo   <- which(colnames(bsfine) %in% c(paste0("ZOOPLANKT->", i))),
+  spom  <- which(colnames(bsfine) %in% c(paste0("SPOM->", i))),
+  som   <- which(colnames(bsfine) %in% c(paste0("SOM->", i))),
+  benth <- which(colnames(bsfine) %in% c(levels(interaction(Benthos, i, sep="->")))),
+  biv   <- which(colnames(bsfine) %in% c(levels(interaction(bivalves, i, sep="->")))),
+  cru   <- which(colnames(bsfine) %in% c(levels(interaction(crustacea, i, sep="->")))),
+  pol   <- which(colnames(bsfine) %in% c(levels(interaction(polychaetes, i, sep="->")))),
+  oth   <- which(colnames(bsfine) %in% c(levels(interaction(others, i, sep="->")))), 
+  pisc  <- which(colnames(bsfine) %in% c(levels(interaction(Fish, i, sep="->"))))
+  )
+  
+  nms <- paste0(i, "_", c("Phyto", "Zoo", "SPOM", "SOM", "Benthos", "Biv", "Crust", "Poly", "Other", "Pisc"))
+
+  for(j in 1:length(ii)){
+    bsfinefish <- cbind(bsfinefish, rowSums(bsfine[,ii[[j]], drop = FALSE]))
+  }
+  
+  namevec <- c(namevec, nms)
+  
+}
+
+bsfinefish <- bsfinefish[,-1]
+colnames(bsfinefish) <- namevec
+
+save(bsfinecflows     , file = paste0("./finalresults/finecflowsmatrixbootstrap.Rdata"))
+write.csv(bsfinecflows, file = "./finalresults/finecflowsmatrixbootstrap.csv", row.names = FALSE)
+
+save(bsfinefish     , file = paste0("./finalresults/finefishmatrixbootstrap.Rdata"))
+write.csv(bsfinefish, file = "./finalresults/finefishmatrixbootstrap.csv", row.names = FALSE)
+
+```
+
+# Indices
+
+
+-   Calculated on average of MCMC solution and on initial solution
+    (Ldei).
+
+## Calculate on output rows
+
+```{r, options}
+
+# Create Index matrix #
+Indices     <- c("T..", "TST", "Ltot", "Lint", "LD",
+             "C", "Tij", "FCI", "APL", "HR", "DR", "AMI", "ACR", "BC", "Cbar", "TSTC", "TSTS")
+readLIM     <- readLIM.fine
+variranges  <- varrangesfine
+finalmatrix <- XFine
+LIM         <- LIM.fine
+
+seq <- round(seq(1, nrow(XFine), length.out = 1000), 0)
+
+# Create a matrix for the indices to be calculated for each iteration
+NetInd <- matrix(NA, nrow = length(seq), ncol = length(Indices)) ##dimnames
+colnames(NetInd) <- Indices
+
+# Matrix for trophic level calculation
+comps <- as.character(LIM$Components$name)
+TrLevels <- matrix(NA, nrow = length(seq), ncol = length(comps))
+colnames(TrLevels) <- comps
+
+TrOI <- matrix(NA, nrow = length(seq), ncol = length(comps))
+colnames(TrOI) <- comps
+
+# Loop
+for (i in 1:length(seq)){
+  
+  # Specify which compartments are external to serve for import and export.
+  # Specify which compartments comprise of dead material.
+  Import <- c("DIC")
+  Export <- c("EXP", "DIC", "BUR")
+  Dead   <- c("SOM", "SPOM")
+  
+  # Get flow matrix 
+  fm  <- getFlowMatrix(originalFM = LIM$Flowmatrix, 
+                       flows = readLIM$flows, 
+                       answers = finalmatrix[i,])
+  
+  # Remove rows/cols that sum to zero,
+  # and remove Imports from colums and Exports from rows.
+  RemCol <- unique(which(colSums(fm)==0), 
+                   which(colnames(fm)%in% Import, arr.ind = TRUE))
+  RemRow <- unique(which(rowSums(fm)==0), 
+                   which(rownames(fm)%in% Export, arr.ind = TRUE))
+  if(length(RemRow) != 0) {fm <- fm[-RemRow,] }
+  if(length(RemCol) != 0) {fm <- fm[,-RemCol] }
+  
+  # Redefine Import and Export if they were eliminated from fm
+  Import <- Import[which(Import%in%rownames(fm))]      
+  Export <- Export[which(Export%in%colnames(fm))]      
+
+  # Calculate indices
+  NetInd[i, "T.."]  <- GenInd (Flow=fm, Import=Import, Export=Export)$T..
+  NetInd[i, "TST"]  <- GenInd (Flow=fm, Import=Import, Export=Export)$TST
+  NetInd[i, "Lint"] <- GenInd (Flow=fm, Import=Import, Export=Export)$Lint
+  NetInd[i, "Ltot"] <- GenInd (Flow=fm, Import=Import, Export=Export)$Ltot
+  NetInd[i, "LD"]   <- GenInd (Flow=fm, Import=Import, Export=Export)$LD
+  NetInd[i, "C"]    <- GenInd (Flow=fm, Import=Import, Export=Export)$C
+  NetInd[i, "Tij"]  <- GenInd (Flow=fm, Import=Import, Export=Export)$Tij
+  NetInd[i, "FCI"]  <- PathInd(Flow=fm, Import=Import, Export=Export)$FCIb
+  NetInd[i, "APL"]  <- PathInd(Flow=fm, Import=Import, Export=Export)$APL
+  NetInd[i, "HR"]   <- UncInd (Flow=fm, Import=Import, Export=Export)$HR
+  NetInd[i, "DR"]   <- UncInd (Flow=fm, Import=Import, Export=Export)$DR
+  NetInd[i, "AMI"]  <- UncInd (Flow=fm, Import=Import, Export=Export)$AMI
+  NetInd[i, "ACR"]  <- AscInd (Flow=fm, Import=Import, Export=Export) ["Total","ACratio"]
+  NetInd[i, "BC"]   <- EnvInd (Flow=fm, Import=Import, Export=Export)$BC
+  NetInd[i, "Cbar"]  <- GenInd (Flow=fm, Import=Import, Export=Export)$Cbar
+  NetInd[i, "TSTC"]  <- PathInd (Flow=fm, Import=Import, Export=Export)$TSTC
+  NetInd[i, "TSTS"]  <- PathInd (Flow=fm, Import=Import, Export=Export)$TSTS
+
+  a <- getTrophInd(Flow=fm, Import=Import, Export=Export, Dead=Dead)$TL
+  if(length(a) != length(comps)) {
+    index <- index[!is.na(index)]
+    for (j in 1:length(index)) {
+      val <- c(a, NA)
+      id  <- c(seq_along(a), index[j]-0.5)
+      a <- val[order(id)]
+    }
+  }
+  TrLevels[i,] <- a
+  
+  b <- getTrophInd(Flow=fm, Import=Import, Export=Export, Dead=Dead)$OI
+  if(length(b) != length(comps)) {
+    index <- index[!is.na(index)]
+    for (j in 1:length(index)) {
+      val <- c(b, NA)
+      id  <- c(seq_along(b), index[j]-0.5)
+      b <- val[order(id)]
+    }
+  }
+  TrOI[i,] <- b
+  
+} 
+
+netindfine <- NetInd
+
+rm(NetInd)
+
+save(file = "./finalresults/NETINDfine.rda", netindfine)
+
+
+```
+
+## Analysis of index results
+
+```{r}
+
+load(file = "./finalresults/NETINDfine.rda")
+
+# Save mean±std for use in text.
+meansNI <- colMeans(netindfine)
+stdevNI <- sqrt(diag(var(netindfine)))
+NIfine  <- data.frame(mean = meansNI, stdev = stdevNI)
+
+save(file = "./finalresults/fineindtable.rda", NIfine)
+
+```
+
+# Calculate variables
+
+```{r}
+
+
+varA <- NULL
+
+for(i in (1:nrow(XFine))){
+varnew <- LIM.fine$VarA%*%XFine[i,]
+varA <- cbind(varA, varnew)
+}
+
+varsfine <- varA
+rm(varA)
+
+row.names(varsfine) <- LIM.fine$Variables
+
+meanvarsfine <- apply(varsfine, 1, mean, na.rm = TRUE)
+sdvarsfine   <- apply(varsfine, 1, sd, na.rm = TRUE)
+minvarsfine  <- apply(varsfine, 1, min, na.rm = TRUE)
+maxvarsfine  <- apply(varsfine, 1, max, na.rm = TRUE)
+
+varsfine <- data.frame("mean" = meanvarsfine, "sd" = sdvarsfine, "min" = minvarsfine, "max" = maxvarsfine)
+
+save(file = "./finalresults/varsfine.rda", varsfine)
+write.csv(varsfine, file = "./finalresults/varsfine.csv") 
+
+```

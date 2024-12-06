@@ -1,0 +1,47 @@
+Code Names Biomass (mmol C m-2)
+1 CALLIO Callionymiformes 0.34
+2 CARANG Carangiformes 3e-04
+3 CLUPEI Clupeiformes 0.016
+4 GADIFO Gadiformes 6.315
+5 GOBIFO Gobiiformes 0.026
+6 COTTOI Cottoidei 0.277
+7 PERCOI Uranoscopoidei 0.097
+8 SCORPA Percoidei 0.178
+9 AMMODY Scorpaenoidei 0.183
+10 PLEURO Pleuronectiformes 4.976
+11 JELLY Jellyfish 106.32
+12 CUMACE Cumaceans 2.64
+13 CALLIA Callianassidae 0.056
+14 DETAMP Detritivore Amphipods 4.229
+15 DPAMP Detritivore-planktivore Amphipods 0.312
+16 CARSHR Carnivorous Shrimp 12.326
+17 PAGURI Pagurids 11.419
+18 CARNCR Carnivorous Crabs 2.911
+19 HSUDEBI Herbivorous Suspension-depositfeeding Bivalves 4096.851
+20 SUDEBI Suspension-depositfeeding Bivalves 45.41
+21 SUSBIV Suspensionfeeding Bivalves 407.84
+22 DETBIV Depositfeeder Bivalve 11.583
+23 SUSGAS Suspensionfeeder Gastropod 0.019
+24 PARGAS Parasitic Gastropod 0.057
+25 SCAGAS Scavenger carnivorous Gastropod 0.14
+26 BORGAS Boring Gastropods 2.293
+27 SEPATL Sepiola Atlantica 48.241
+28 DETPOL Detritivore Polychaetes 7.41
+29 NEPHTY Nephtyds 124.77
+30 CARPOLP Carnivorous Polychaetes P 5.66
+31 CARPOLC Carnivorous Polychaetes C 5.983
+32 CARPOLPC Carnivorous Polychaetes PC 9.747
+33 SUDEPOL Suspension-depositfeeder Polychaetes 470.14
+34 SUSWOR Suspensionfeeder Worms 2.108
+35 ASTRUB Asterias Rubens 952.054
+36 OPHIUR Ophiurids 236.738
+37 ECHCOR Echinocardium Cordatum 5165.738
+38 ACRBRA Acrocnida Brachiata 179.952
+39 PSAMIL Psammechinus Miliaris 250
+40 SAGTRO Sagartia Troglodytes 718.822
+41 ZOOPLANKT Zooplankton NA
+42 PHYTOPLANKT Phytoplankton NA
+43 SOM Sediment OM 32000
+44 SPOM Suspended OM 1057.347
+45 SEDBAC Sed. Bacteria 746.075
+46 WATBAC Wat. Bacteria 25

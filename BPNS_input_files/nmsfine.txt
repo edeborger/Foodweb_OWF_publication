@@ -1,0 +1,49 @@
+Callionymiformes
+Carangiformes
+Clupeiformes
+Gadiformes
+Gobiiformes
+Cottoidei
+Uranoscopoidei
+Percoidei
+Scorpaenoidei
+Pleuronectiformes
+Jellyfish
+Cumaceans
+Callianassidae
+Detritivore Amphipods
+Detritivore-planktivore Amphipods
+Carnivorous Shrimp
+Pagurids
+Carnivorous Crabs
+Herbivorous Suspension-depositfeeding Bivalves
+Suspension-depositfeeding Bivalves
+Suspensionfeeding Bivalves
+Depositfeeder Bivalve
+Suspensionfeeder Gastropod
+Parasitic Gastropod
+Scavenger carnivorous Gastropod
+Boring Gastropods
+Sepiola Atlantica
+Detritivore Polychaetes
+Nephtyds
+Carnivorous Polychaetes P
+Carnivorous Polychaetes C
+Carnivorous Polychaetes PC
+Suspension-depositfeeder Polychaetes
+Suspensionfeeder Worms
+Asterias Rubens
+Ophiurids
+Echinocardium Cordatum
+Acrocnida Brachiata
+Psammechinus Miliaris
+Sagartia Troglodytes
+Zooplankton
+Phytoplankton
+Sediment OM
+Suspended OM
+Sed. Bacteria
+Wat. Bacteria
+DIC
+Export
+Burial

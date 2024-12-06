@@ -1,0 +1,72 @@
+Ammodytes sp.
+A. laterna
+B. lanceolatum
+B. luteum
+C. lyra
+C. cuculus
+E. vipera
+G. morhua
+L. limanda
+M. kitt
+M. surmuletus
+M. scorpioides
+P. platessa
+Pomatoschistus sp.
+R. raninus
+S. scombrus
+T. bubalis
+T. trachurus
+T. luscus
+Balanoidea (T)
+Carn. polychaetes M (T)
+Carn. polychaetes PC (T)
+Susp. feeding bivalves (T)
+Susp. feeder gastropods (T)
+Grazing gastropods (T)
+Ophiura sp. (T)
+Anthozoa (T)
+Sponges (T)
+Nudibranch (T)
+Susp.-dep. feeder amphipods (TR)
+Detrit. crabs (TR)
+Susp.-dep. feeder crabs (TR)
+Carnivorous crabs (TR)
+H. gammarus (TR)
+Flatworms (TR)
+Cumaceans (RS)
+Detritivore crabs (RS)
+L. conchilega (RS)
+Scavenger carn. gastropods (RS)
+Detrit. amphipods (S)
+Detrit.-planktivore amphipods (S)
+Susp.-detri. shrimp (S)
+Carnivorous shrimp (S)
+Susp.-deposit feeding crabs (S)
+Pagurids (S)
+Detrit. polychaetes (S)
+Carn. polychaetes P (S)
+Carn. polychaetes PC (S)
+Susp.-deposit feeder polychaetes (S)
+Susp. feeding worms (S)
+S. atlantica (S)
+Susp. deposit feeder bivalves (S)
+Herb. susp.-deposit feeding bivalves (S)
+Deposit feeder bivalves (S)
+Browsing gastropods (S)
+Boring gastropods (S)
+E. cordatum (S)
+Ophiurids (S)
+Isopoda (U)
+Detrit. polychaetes (U)
+Carn. polychaetes C (U)
+Nephtyds (U)
+A. rubens (U)
+Zooplankton
+Phytoplankton
+SOM
+SuspendedPOM
+Bacteria S
+Bacteria W
+DIC
+Export
+Burial

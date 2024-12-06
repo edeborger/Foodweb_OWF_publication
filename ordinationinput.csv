@@ -1,0 +1,61 @@
+Name;OWF;FINE;COARSE;Loc
+Asterias rubens;51.01;952.054;276.7;Ubiquitous
+Callionymiformes ;0.2055;0.34;0.5667;Ubiquitous
+Carangiformes ;0.1706;0.0003;0.0586;Ubiquitous
+Carnivorous crabs;40.47;2.911;8.052;Ubiquitous
+Carnivorous pol. C;0.028;5.983;0.019;Ubiquitous
+Carnivorous pol. P;0.846;5.66;0.051;Ubiquitous
+Carnivorous pol. PC;2.508;9.747;2.1;Ubiquitous
+Cottoidei ;0.0807;0.277;0.0115;Ubiquitous
+Cumacea ;0.454;2.64;0.272;Ubiquitous
+Detritivore amphipods;9.714;4.229;1.937;Ubiquitous
+Detritivore polychaetes;13.602;7.41;18.643;Ubiquitous
+Detritivore-planktivore amphipods;0.418;0.312;0.404;Ubiquitous
+Echinocardium;189.443;5165.738;1453.145;Ubiquitous
+Gadiformes ;0.1156;6.315;0.2192;Ubiquitous
+Gobiiformes ;0.038;0.026;0.143;Ubiquitous
+Herbivorous-suspensiondepositfeeder bivalves;0.047;4096.851;2.567;Ubiquitous
+Jellyfish ;106.32;106.32;106.32;Ubiquitous
+Nephtyds;36.008;124.77;21.408;Ubiquitous
+Ophiurids;43.603;236.738;0.494;Ubiquitous
+Pagurids;13.887;11.419;4.221;Ubiquitous
+Percoidei ;0.6247;0.097;0.012;Ubiquitous
+Pleuronectiformes ;3.3857;4.976;3.0983;Ubiquitous
+Scorpaenoidei ;0.0224;0.178;0.0845;Ubiquitous
+Sepiola atlantica;4.798;48.241;1.093;Ubiquitous
+Suspension-depositfeeder bivalves;36.504;45.41;45.591;Ubiquitous
+Suspensionfeeder gastropods;2.586;0.019;0.019;Ubiquitous
+Suspensionfeeding bivalves;35.879;407.84;0.097;Ubiquitous
+Suspensionfeeding worms;0.122;2.108;2.81;Ubiquitous
+Uranoscopoidei ;0.0541;0.183;0.0657;Ubiquitous
+Detritivore shrimp;0;0;3.453;Coarse
+Acrocnida brachiata ;0;179.952;0;Fine
+Parasitic gastropod ;0;0.057;0;Fine
+Psammechinus miliaris ;0;250;0;Fine
+Cylista troglodytes ;0;718.822;0;Fine
+Callianassidae ;0;0.056;0.025;Fine and Coarse
+Anthozoa (T) ;22.435;0;0;OWF
+Balanoidea (T);0.254;0;0;OWF
+Carnivorous pol. M (T);0.48;0;0;OWF
+Detritivore crabs;0.967;0;0;OWF
+Flatworms (T-R);0.498;0;0;OWF
+Grazing gastropods (T);3.127;0;0;OWF
+Homarus gammarus;2.244;0;0;OWF
+Nudibranch (T);0.1;0;0;OWF
+Ophiura (T);0.49;0;0;OWF
+Scombriformes ;0.0819;0;0;OWF
+Sponges (T) ;0.1;0;0;OWF
+Suspension-depositfeeder amphipods (T);9.424;0;0;OWF
+Suspension-depositfeeder crabs;0.742;0;0;OWF
+Suspension-depositfeeder shrimp;0.378;0;0;OWF
+Zeiformes ;0.0034;0;0;OWF
+Browsing gastropods;0.008;0;0.277;OWF and Coarse
+Isopoda;0.219;0;0.291;OWF and Coarse
+Mulliformes ;0.0774;0;0.0437;OWF and Coarse
+Small suspension-depositfeeder crabs;8.822;0;92.938;OWF and Coarse
+Boring gastropods;0.0585;2.293;0;OWF and Fine
+Carnivorous shrimp;1.594;12.326;0;OWF and Fine
+Clupeiformes ;0.0015;0.016;0;OWF and Fine
+Depositfeeder bivalves;0.478;11.583;0;OWF and Fine
+Scavenging gastropods;2.534;0.14;0;OWF and Fine
+Suspension-depositfeeder pol.;13.565;470.14;0;OWF and Fine
