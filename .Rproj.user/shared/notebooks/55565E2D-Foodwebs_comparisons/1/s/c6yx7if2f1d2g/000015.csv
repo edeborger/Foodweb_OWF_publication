@@ -1,0 +1,5 @@
+"0",""
+"0","write.table(keycoarse, ""./paper_figures_tables/tables/key_coarse.txt"", quote = FALSE)"
+"0","write.table(keyfine  , ""./paper_figures_tables/tables/key_fine.txt""  , quote = FALSE)"
+"0","write.table(keyowf   , ""./paper_figures_tables/tables/key_owf.txt""   , quote = FALSE)"
+"0",""

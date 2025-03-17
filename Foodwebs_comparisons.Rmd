@@ -32,7 +32,7 @@ require(ggpmisc)
 require(ggrepel)
 require(factoextra)
 require(vegan)
-source("~/GitHub/Foodweb_publication/auxfuns.R")
+source("~/GitHub/Foodweb_OWF/auxfuns.R")
 
 library(devtools)
 install_github("pmartinezarbizu/pairwiseAdonis/pairwiseAdonis")
@@ -118,8 +118,6 @@ Notes
 
 ## Coarse
 
--   *E. cordatum*, suspension feeding bivalves and crabs are important inputs of
-    water column material into the sediment.
 
 ```{r 330 foodweb, fig.height = 16, fig.width = 16, echo = FALSE, message = FALSE, fig.cap = "330 foodweb"}
 
@@ -311,7 +309,7 @@ overviewfig <- ggplot(data = overviewdfsub, aes(x = foodweb, y = val, fill = foo
 
 overviewfig
 
-ggsave("./paper_figures_tables/figures/basicstats_presentation.png", height = 5, width = 12)
+ggsave("./paper_figures_tables/figures/basicstats.png", height = 5, width = 12)
 
 
 ```

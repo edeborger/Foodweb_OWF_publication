@@ -1,0 +1,24 @@
+{
+    "id": "587C8A66",
+    "path": "~/GitHub/Foodweb_OWF/example_run_foodweb_clustered.R",
+    "project_path": "example_run_foodweb_clustered.R",
+    "type": "r_source",
+    "hash": "1687061176",
+    "contents": "",
+    "dirty": false,
+    "created": 1742240625239.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1689253034,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1689253034,
+    "read_only": false,
+    "read_only_alternatives": []
+}

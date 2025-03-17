@@ -1,0 +1,5 @@
+"0","# simplified"
+"0","plotweb(matcoarseb, main=""Coarse Foodweb - Simplified"", "
+"0","        bty=""n"", lab.size=1.2, names = nmscoarse[1:40,1], log = T, leg.title = ""log + 1"")"
+"1","NULL
+"

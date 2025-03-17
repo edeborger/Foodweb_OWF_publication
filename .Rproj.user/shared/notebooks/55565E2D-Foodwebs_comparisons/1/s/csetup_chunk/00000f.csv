@@ -1,0 +1,120 @@
+"0",""
+"0","knitr::opts_chunk$set(fig.pos = ""H"", out.extra = """")"
+"0",""
+"0","# Packages "
+"0","require(LIM)"
+"2","Loading required package: LIM
+"
+"2","Loading required package: limSolve
+"
+"2","Loading required package: diagram
+"
+"2","Loading required package: shape
+"
+"0","require(tidyr)"
+"2","Loading required package: tidyr
+"
+"0","require(dplyr)"
+"2","Loading required package: dplyr
+"
+"2","
+Attaching package: ‘dplyr’
+
+"
+"2","The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+"
+"2","The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+"
+"0","require(NetIndices)"
+"2","Loading required package: NetIndices
+"
+"2","Loading required package: MASS
+"
+"2","
+Attaching package: ‘MASS’
+
+"
+"2","The following object is masked from ‘package:dplyr’:
+
+    select
+
+"
+"0","require(magrittr)"
+"2","Loading required package: magrittr
+"
+"2","
+Attaching package: ‘magrittr’
+
+"
+"2","The following object is masked from ‘package:tidyr’:
+
+    extract
+
+"
+"0","require(ggplot2)"
+"2","Loading required package: ggplot2
+"
+"2","
+Attaching package: ‘ggplot2’
+
+"
+"2","The following object is masked from ‘package:limSolve’:
+
+    resolution
+
+"
+"0","require(ggh4x)"
+"2","Loading required package: ggh4x
+"
+"0","require(ggpmisc)"
+"2","Loading required package: ggpmisc
+"
+"2","Loading required package: ggpp
+"
+"2","Registered S3 methods overwritten by 'ggpp':
+  method                  from   
+  heightDetails.titleGrob ggplot2
+  widthDetails.titleGrob  ggplot2
+"
+"2","
+Attaching package: ‘ggpp’
+
+"
+"2","The following object is masked from ‘package:ggh4x’:
+
+    stat_centroid
+
+"
+"2","The following object is masked from ‘package:ggplot2’:
+
+    annotate
+
+"
+"0","require(ggrepel)"
+"2","Loading required package: ggrepel
+"
+"0","require(factoextra)"
+"2","Loading required package: factoextra
+"
+"2","Welcome! Want to learn more? See two factoextra-related books at https://goo.gl/ve3WBa
+"
+"0","require(vegan)"
+"2","Loading required package: vegan
+"
+"2","Loading required package: permute
+"
+"2","Loading required package: lattice
+"
+"2","This is vegan 2.6-8
+"
+"0","source(""~/GitHub/Foodweb_publication/auxfuns.R"")"
+"2","Warning: cannot open file 'C:/Users/edeborger/Documents/GitHub/Foodweb_publication/auxfuns.R': No such file or directory"
+"2","Error in file(filename, ""r"", encoding = encoding) : 
+  cannot open the connection
+"

@@ -1,0 +1,9 @@
+"0",""
+"0","matcoarse  <- Flowmatrix(lim = LIM.coarse, web = Solldeicoarse$X+1)"
+"0","matcoarseb <- matcoarse[-c(41:44), -c(41:44)]"
+"0",""
+"0","# full"
+"0","plotweb(Flowmatrix(lim = LIM.coarse, web = Solldeicoarse$X+1), main=""Coarse Foodweb"", "
+"0","        bty=""n"", lab.size= 1.2, names = nmscoarse[,1], log = T, leg.title = ""log + 1"")"
+"1","NULL
+"

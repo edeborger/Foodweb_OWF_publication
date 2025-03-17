@@ -225,7 +225,7 @@ Author : Emil De Borger
 
     !-- Bacterial growth efficiency - .2-.55
     minBGE = 0.05
-	maxBGE = 0.45
+  	maxBGE = 0.45
 
     !-- Phytoplankton growth efficiency
     !minPGE = 0.5
